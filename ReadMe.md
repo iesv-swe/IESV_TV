@@ -114,6 +114,30 @@ Why does this exist? To let our code (GitHub) talk to Google Calendar (Google's 
 
 Where is it? It's stored in a Google Cloud project. You will need to find which Google account owns this project.
 
+
+How to Schedule Content
+Choose the Calendar: Open either your "Junior TV Schedule" or "Senior TV Schedule" calendar.
+
+Create an Event: Set the start and end times for when you want the special content to appear.
+
+Use the Description Box for Commands:
+
+Show a Specific Slide (from the main deck):
+
+Description: show=slide&id=X (Replace X with the slide number, e.g., show=slide&id=5)
+
+Show a Text Announcement:
+
+Event Title: Your message (e.g., "Meeting in Library")
+
+Description: show=event
+
+Show a Specific Slide (from a different presentation):
+
+Description: show=externalSlide&presId=[Presentation ID]&slideId=Y (Replace [Presentation ID] with the ID of the other slide deck and Y with the slide number, e.g., show=externalSlide&presId=1aBcDeFg...&slideId=1)
+
+Save the Event.
+
 The Key itself is pasted into the index.html file (near the top of the <script> tag): const API_KEY = '...'
 
 SECURITY: This key is publicly visible in our GitHub code. This is okay because it is restricted. In the Google Cloud Console, the key is locked down to only accept requests from our website (httpsiesv-swe.github.io/*). It is useless to anyone else.
