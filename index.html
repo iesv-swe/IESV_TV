@@ -37,6 +37,11 @@
         #clock-date {
             font-size: 2vw; /* Smaller font for the date */
         }
+        /* NEW: This styles the "23 oktober" part */
+.clock-day-month {
+    font-size: 0.8vw;  /* Makes it smaller */
+    color: #ccc;       /* Makes it slightly dimmer (light gray) */
+}
         /* --- END NEW CLOCK STYLES --- */
 
 
@@ -282,7 +287,7 @@
         }
 
         
-       /* --- NEW CLOCK FUNCTION --- */
+/* --- NEW CLOCK FUNCTION --- */
 /**
  * Updates the on-screen clock and date.
  */
@@ -290,7 +295,6 @@ function updateClock() {
     const now = new Date();
 
     // --- TIME (Unchanged) ---
-    // Using 'sv-SE' (Swedish) locale for formatting
     const timeOptions = { hour: '2-digit', minute: '2-digit' };
     const timeString = now.toLocaleTimeString('sv-SE', timeOptions);
 
@@ -298,19 +302,18 @@ function updateClock() {
     // 1. Get the weekday
     const weekdayOptions = { weekday: 'long' };
     let weekdayString = now.toLocaleDateString('sv-SE', weekdayOptions);
-    // Capitalize the first letter (e.g., "torsdag" -> "Torsdag")
     weekdayString = weekdayString.charAt(0).toUpperCase() + weekdayString.slice(1);
 
     // 2. Get the day and month
     const dayMonthOptions = { day: 'numeric', month: 'long' };
-    const dayMonthString = now.toLocaleDateString('sv-SE', dayMonthOptions); // e.g., "23 oktober"
+    const dayMonthString = now.toLocaleDateString('sv-SE', dayMonthOptions);
 
-    // 3. Combine them with a line break
-    const formattedDate = `${weekdayString}<br>${dayMonthString}`;
+    // 3. Combine them with a <br> and a <span> for styling
+    // ⬇️ THIS IS THE ONLY LINE THAT CHANGED ⬇️
+    const formattedDate = `${weekdayString}<br><span class="clock-day-month">${dayMonthString}</span>`;
 
     // --- Update HTML ---
     document.getElementById('clock-time').innerText = timeString;
-    // Use .innerHTML to render the <br> tag
     document.getElementById('clock-date').innerHTML = formattedDate; 
 }
 /* --- END NEW CLOCK FUNCTION --- */
