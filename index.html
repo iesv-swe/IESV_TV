@@ -11,53 +11,43 @@
             padding: 0;
             height: 100%;
             width: 100%;
-            overflow: hidden; /* No scroll bars */
+            overflow: hidden;
             font-family: Arial, Helvetica, sans-serif;
             background-color: #000;
             color: #fff;
         }
         
-        /* --- NEW CLOCK STYLES --- */
+        /* Clock Styles */
         #clock-container {
-            position: fixed; /* Floats on top of everything */
-            top: 30px;
-            left: 40px;
-            z-index: 100; /* Ensures it's on top of the slides */
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 100;
             color: #fff;
-            text-align: left;
-            /* Adds a subtle shadow to make text readable on any background */
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+            text-align: right;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
         }
-
         #clock-time {
-            font-size: 2.5vw; /* Large, responsive font for the time */
+            font-size: 2.5vw;
             font-weight: bold;
         }
-
         #clock-date {
-            font-size: 2vw; /* Smaller font for the date */
+            font-size: 1vw;
         }
-        /* NEW: This styles the "23 oktober" part */
-.clock-day-month {
-    font-size: 0.8vw;  /* Makes it smaller */
-    color: #ccc;       /* Makes it slightly dimmer (light gray) */
-}
-        /* --- END NEW CLOCK STYLES --- */
+        .clock-day-month {
+            font-size: 0.8vw;
+            color: #ccc;
+        }
 
-
-        /* Fullscreen container for all views */
+        /* View container styles */
         .view-container {
             width: 100%;
             height: 100%;
-            display: none; /* Hidden by default */
+            display: none;
         }
-
-        /* Default View: Looping Iframe */
         #default-view {
-            display: block; /* Show this one on load */
+            display: block;
         }
-
-        /* Event View: For special announcements or single slides */
         #event-view {
             box-sizing: border-box;
             padding: 50px;
@@ -68,23 +58,22 @@
             text-align: center;
         }
 
+        /* Event-specific text styles */
         #event-title {
-            font-size: 7vw; /* Responsive font size */
+            font-size: 7vw;
             font-weight: bold;
             margin-bottom: 20px;
         }
-
         #event-time {
             font-size: 4vw;
             color: #ccc;
         }
-
         #event-slide-content {
             width: 100%;
             height: 100%;
         }
 
-        /* Generic iframe style for both views */
+        /* Iframe style */
         iframe {
             width: 100%;
             height: 100%;
@@ -95,12 +84,12 @@
 <body>
 
     <div id="clock-container">
-        <div id="clock-time">11:49</div>
-        <div id="clock-date">torsdag 23 oktober</div>
+        <div id="clock-time"></div>
+        <div id="clock-date"></div>
     </div>
+
     <div id="default-view" class="view-container">
-        <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000" 
-                frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true">
+        <iframe id="default-iframe" frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true">
         </iframe>
     </div>
 
@@ -111,40 +100,75 @@
     </div>
 
     <script type="text/javascript">
+        // ---------------------------------
         // --- CONFIGURATION ---
         // ---------------------------------
         // ❗ USER: PASTE YOUR NEW API KEY HERE
-        // ---------------------------------
         const API_KEY = 'AIzaSyDzOkNBXcjLGSPxBX1gxWsJwF83feaL_JQ';
 
-        // Your project IDs
-        const CALENDAR_ID = 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com';
-        const PRESENTATION_ID = '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8';
+        // ❗ USER: Fill in your IDs for both signs
+        const SIGNAGE_CONFIGS = {
+            'junior': {
+                calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
+                presentationId: '1Hm9DlVNLmN0tKTD7tR9b0vdu3AMTPNkLdLUdotyKlhM',
+                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pub?start=true&loop=true&delayms=10000'
+            },
+            'senior': {
+                calendarId: 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com',
+                presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8',
+                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000'
+            }
+        };
         
-        // How often to check the calendar (in milliseconds)
-        const REFRESH_INTERVAL = 60000; // 60,000ms = 1 minute
+        const REFRESH_INTERVAL = 60000; // 1 minute
+        
+        // --- Global variables for the current sign's settings ---
+        let currentSettings = null; 
+        
+        // ---------------------------------
+        // --- END CONFIGURATION ---
         // ---------------------------------
 
-
-        // Get references to our HTML elements
+        // Get references to HTML elements
         const defaultView = document.getElementById('default-view');
         const eventView = document.getElementById('event-view');
         const eventTitle = document.getElementById('event-title');
         const eventTime = document.getElementById('event-time');
         const eventSlideContent = document.getElementById('event-slide-content');
+        const defaultIframe = document.getElementById('default-iframe');
+
 
         /**
-         * Initializes the Google API client.
-         * This is the entry point.
+         * Main entry point, called on page load
          */
         function start() {
-            // --- NEW CLOCK STARTER ---
-            // Start the clock as soon as the page loads
+            // Start the clock
             updateClock();
-            setInterval(updateClock, 1000); // Update every second
-            // --- END NEW CLOCK STARTER ---
+            setInterval(updateClock, 1000);
 
-            gapi.load('client', initClient);
+            // --- NEW "ROUTER" LOGIC ---
+            // Get the sign ID from the URL (e.g., index.html?sign=junior)
+            const urlParams = new URLSearchParams(window.location.search);
+            const signId = urlParams.get('sign'); // 'junior' or 'senior'
+
+            if (signId && SIGNAGE_CONFIGS[signId]) {
+                currentSettings = SIGNAGE_CONFIGS[signId];
+                console.log(`Loading configuration for: ${signId}`);
+                
+                // Set the default looping slide deck
+                defaultIframe.src = currentSettings.defaultUrl;
+
+                // Start the Google API client
+                gapi.load('client', initClient);
+            } else {
+                // Show an error if the URL is wrong
+                console.error('Invalid or missing sign ID in URL.');
+                document.body.innerHTML = `<h1 style="color:red; padding: 50px;">
+                    Configuration Error: Invalid URL</h1>
+                    <p style="color:white; padding: 0 50px;">
+                    Please add <strong>?sign=junior</strong> or <strong>?sign=senior</strong> to the end of the URL.
+                    </p>`;
+            }
         }
 
         function initClient() {
@@ -153,11 +177,10 @@
                 'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
             }).then(() => {
                 console.log('Google API client initialized.');
-                checkCalendar(); // Check immediately on load
-                setInterval(checkCalendar, REFRESH_INTERVAL); // Then check every minute
+                checkCalendar();
+                setInterval(checkCalendar, REFRESH_INTERVAL);
             }, (error) => {
                 console.error('Error initializing Google client:', error);
-                // If API fails, just show the default view
                 showDefaultView();
             });
         }
@@ -166,19 +189,20 @@
          * Checks the Google Calendar for any *currently active* event.
          */
         function checkCalendar() {
+            if (!currentSettings) return; // Don't run if config is missing
+
             const now = new Date();
             console.log(`Checking calendar at ${now.toLocaleTimeString()}`);
 
             gapi.client.calendar.events.list({
-                'calendarId': CALENDAR_ID,
-                'timeMin': now.toISOString(), // Events starting now or in the future
-                'maxResults': 1,               // Only need the very next one
+                'calendarId': currentSettings.calendarId, // <-- Uses current sign's ID
+                'timeMin': now.toISOString(),
+                'maxResults': 1,
                 'singleEvents': true,
                 'orderBy': 'startTime'
             }).then((response) => {
                 const events = response.result.items;
                 if (!events || events.length === 0) {
-                    // No upcoming events, show default
                     showDefaultView();
                     return;
                 }
@@ -187,17 +211,15 @@
                 const eventStart = new Date(event.start.dateTime || event.start.date);
                 const eventEnd = new Date(event.end.dateTime || event.end.date);
 
-                // Check if 'now' is *between* the event's start and end time
                 if (now >= eventStart && now < eventEnd) {
                     console.log('Active event found:', event.summary);
                     parseEvent(event);
                 } else {
-                    // The next event isn't active right now
                     showDefaultView();
                 }
             }).catch((error) => {
                 console.error('Error fetching calendar:', error);
-                showDefaultView(); // On error, always revert to default
+                showDefaultView();
             });
         }
 
@@ -207,71 +229,49 @@
         function parseEvent(event) {
             const description = event.description || '';
 
-            // Command 1: Show a specific slide
             if (description.includes('show=slide&id=')) {
                 try {
-                    const slideNumber = description.split('id=')[1].split(' ')[0]; // Get the number after 'id='
+                    const slideNumber = description.split('id=')[1].split(' ')[0];
                     showSpecificSlide(slideNumber);
                 } catch (e) {
                     console.error('Could not parse slide ID.', e);
                     showDefaultView();
                 }
-            }
-            // Command 2: Show the event text
-            else if (description.includes('show=event')) {
+            } else if (description.includes('show=event')) {
                 showEventText(event);
-            }
-            // Default: No valid command, show default view
-            else {
+            } else {
                 showDefaultView();
             }
         }
 
         // --- VIEW FUNCTIONS ---
 
-        /**
-         * Shows the default looping slideshow.
-         */
         function showDefaultView() {
-            if (defaultView.style.display === 'block') return; // Already visible
+            if (defaultView.style.display === 'block') return;
             console.log('Showing default view.');
             eventView.style.display = 'none';
             defaultView.style.display = 'block';
         }
 
-        /**
-         * Shows a specific Google Slide by its number.
-         */
         function showSpecificSlide(slideNumber) {
             console.log(`Showing specific slide: ${slideNumber}`);
-            // This URL is for an *embedded* slide, not the looping *published* one
-            const slideUrl = `https://docs.google.com/presentation/d/${PRESENTATION_ID}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}`;
+            // <-- Uses current sign's ID
+            const slideUrl = `https://docs.google.com/presentation/d/${currentSettings.presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}`;
             
-            // Clear text fields
             eventTitle.innerText = '';
             eventTime.innerText = '';
-            
-            // Set the iframe content
             eventSlideContent.innerHTML = `<iframe src="${slideUrl}" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>`;
 
-            // Show the event view
             defaultView.style.display = 'none';
             eventView.style.display = 'block';
         }
 
-        /**
-         * Shows the event's title and time on a blank screen.
-         */
         function showEventText(event) {
             console.log(`Showing event text: ${event.summary}`);
-            // Clear any old slide content
             eventSlideContent.innerHTML = '';
-            
-            // Set the text content
             eventTitle.innerText = event.summary;
             eventTime.innerText = formatEventTime(event.start, event.end);
 
-            // Show the event view
             defaultView.style.display = 'none';
             eventView.style.display = 'block';
         }
@@ -285,38 +285,27 @@
             const endTime = new Date(end.dateTime || end.date).toLocaleTimeString('en-US', options);
             return `${startTime} - ${endTime}`;
         }
-
         
-/* --- NEW CLOCK FUNCTION --- */
-/**
- * Updates the on-screen clock and date.
- */
-function updateClock() {
-    const now = new Date();
+        /**
+         * Updates the on-screen clock and date.
+         */
+        function updateClock() {
+            const now = new Date();
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            const timeString = now.toLocaleTimeString('sv-SE', timeOptions);
 
-    // --- TIME (Unchanged) ---
-    const timeOptions = { hour: '2-digit', minute: '2-digit' };
-    const timeString = now.toLocaleTimeString('sv-SE', timeOptions);
+            const weekdayOptions = { weekday: 'long' };
+            let weekdayString = now.toLocaleDateString('sv-SE', weekdayOptions);
+            weekdayString = weekdayString.charAt(0).toUpperCase() + weekdayString.slice(1);
 
-    // --- DATE (Updated for two lines) ---
-    // 1. Get the weekday
-    const weekdayOptions = { weekday: 'long' };
-    let weekdayString = now.toLocaleDateString('sv-SE', weekdayOptions);
-    weekdayString = weekdayString.charAt(0).toUpperCase() + weekdayString.slice(1);
+            const dayMonthOptions = { day: 'numeric', month: 'long' };
+            const dayMonthString = now.toLocaleDateString('sv-SE', dayMonthOptions);
 
-    // 2. Get the day and month
-    const dayMonthOptions = { day: 'numeric', month: 'long' };
-    const dayMonthString = now.toLocaleDateString('sv-SE', dayMonthOptions);
+            const formattedDate = `${weekdayString}<br><span class="clock-day-month">${dayMonthString}</span>`;
 
-    // 3. Combine them with a <br> and a <span> for styling
-    // ⬇️ THIS IS THE ONLY LINE THAT CHANGED ⬇️
-    const formattedDate = `${weekdayString}<br><span class="clock-day-month">${dayMonthString}</span>`;
-
-    // --- Update HTML ---
-    document.getElementById('clock-time').innerText = timeString;
-    document.getElementById('clock-date').innerHTML = formattedDate; 
-}
-/* --- END NEW CLOCK FUNCTION --- */
+            document.getElementById('clock-time').innerText = timeString;
+            document.getElementById('clock-date').innerHTML = formattedDate; 
+        }
 
     </script>
     <script async defer src="https://apis.google.com/js/api.js" onload="start()"></script>
