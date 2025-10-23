@@ -5,79 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IESV Digital Signage</title>
     <style>
-        /* Basic reset and fullscreen settings */
+        /* All CSS is the same */
         html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #000;
-            color: #fff;
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; font-family: Arial, Helvetica, sans-serif;
+            background-color: #000; color: #fff;
         }
-        
-        /* Clock Styles */
         #clock-container {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            z-index: 100;
-            color: #fff;
-            text-align: right;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
+            position: fixed; top: 15px; right: 15px; z-index: 100;
+            color: #fff; text-align: right; text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
         }
-        #clock-time {
-            font-size: 2.5vw;
-            font-weight: bold;
-        }
-        #clock-date {
-            font-size: 1vw;
-        }
-        .clock-day-month {
-            font-size: 0.8vw;
-            color: #ccc;
-        }
-
-        /* View container styles */
-        .view-container {
-            width: 100%;
-            height: 100%;
-            display: none;
-        }
-        #default-view {
-            display: block;
-        }
+        #clock-time { font-size: 2.5vw; font-weight: bold; }
+        #clock-date { font-size: 1vw; }
+        .clock-day-month { font-size: 0.8vw; color: #ccc; }
+        .view-container { width: 100%; height: 100%; display: none; }
+        #default-view { display: block; }
         #event-view {
-            box-sizing: border-box;
-            padding: 50px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
+            box-sizing: border-box; padding: 50px; display: flex;
+            flex-direction: column; justify-content: center;
+            align-items: center; text-align: center;
         }
-
-        /* Event-specific text styles */
-        #event-title {
-            font-size: 7vw;
-            font-weight: bold;
-            margin-bottom: 20px;
+        #event-title { font-size: 7vw; font-weight: bold; margin-bottom: 20px; }
+        #event-time { font-size: 4vw; color: #ccc; }
+        #event-slide-content { width: 100%; height: 100%; }
+        iframe { width: 100%; height: 100%; border: 0; }
+        
+        /* Ticker styles (unchanged) */
+        #ticker-wrap {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            height: 50px; background-color: rgba(0, 0, 0, 0.7);
+            overflow: hidden; z-index: 99; box-sizing: border-box;
         }
-        #event-time {
-            font-size: 4vw;
-            color: #ccc;
+        #ticker-content {
+            display: block; position: absolute; height: 100%;
+            line-height: 50px; font-size: 24px; color: #fff;
+            white-space: nowrap; will-change: transform;
+            animation: ticker-scroll 20s linear infinite;
         }
-        #event-slide-content {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Iframe style */
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: 0;
+        @keyframes ticker-scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
     </style>
 </head>
@@ -89,8 +56,7 @@
     </div>
 
     <div id="default-view" class="view-container">
-        <iframe id="default-iframe" frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true">
-        </iframe>
+        <iframe id="default-iframe" frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
     </div>
 
     <div id="event-view" class="view-container">
@@ -99,14 +65,19 @@
         <div id="event-slide-content"></div>
     </div>
 
+    <div id="ticker-wrap">
+        <div id="ticker-content"></div>
+    </div>
+
+
     <script type="text/javascript">
         // ---------------------------------
         // --- CONFIGURATION ---
         // ---------------------------------
-        // ❗ USER: PASTE YOUR NEW API KEY HERE
-        const API_KEY = 'AIzaSyBC6IsECB620ykggdNvRJzD7BivHEmvToA';
+        const API_KEY = ''; // ❗ PASTE YOUR API KEY HERE
 
-        // ❗ USER: Fill in your IDs for both signs
+        // --- TICKER CALENDAR ID IS NO LONGER NEEDED ---
+
         const SIGNAGE_CONFIGS = {
             'junior': {
                 calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
@@ -116,52 +87,46 @@
             'senior': {
                 calendarId: 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com',
                 presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8',
-                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000'
+                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7YYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000'
             }
         };
         
         const REFRESH_INTERVAL = 60000; // 1 minute
-        
-        // --- Global variables for the current sign's settings ---
         let currentSettings = null; 
-        
         // ---------------------------------
         // --- END CONFIGURATION ---
         // ---------------------------------
 
-        // Get references to HTML elements
         const defaultView = document.getElementById('default-view');
         const eventView = document.getElementById('event-view');
         const eventTitle = document.getElementById('event-title');
         const eventTime = document.getElementById('event-time');
         const eventSlideContent = document.getElementById('event-slide-content');
         const defaultIframe = document.getElementById('default-iframe');
+        const tickerContent = document.getElementById('ticker-content');
 
 
-        /**
-         * Main entry point, called on page load
-         */
         function start() {
-            // Start the clock
             updateClock();
             setInterval(updateClock, 1000);
 
-            // --- NEW "ROUTER" LOGIC ---
-            // Get the sign ID from the URL (e.g., index.html?sign=junior)
             const urlParams = new URLSearchParams(window.location.search);
-            const signId = urlParams.get('sign'); // 'junior' or 'senior'
+            const signId = urlParams.get('sign');
 
             if (signId && SIGNAGE_CONFIGS[signId]) {
                 currentSettings = SIGNAGE_CONFIGS[signId];
                 console.log(`Loading configuration for: ${signId}`);
                 
-                // Set the default looping slide deck
                 defaultIframe.src = currentSettings.defaultUrl;
-
-                // Start the Google API client
+                
+                // --- NEW: Load the ticker text from the file ---
+                loadTickerFile();
+                // We don't need to check the ticker again, but we still check the calendar
+                setInterval(loadTickerFile, REFRESH_INTERVAL * 5); // Refresh ticker file every 5 mins
+                
+                // Load Google API for the *calendar*
                 gapi.load('client', initClient);
             } else {
-                // Show an error if the URL is wrong
                 console.error('Invalid or missing sign ID in URL.');
                 document.body.innerHTML = `<h1 style="color:red; padding: 50px;">
                         Configuration Error: Invalid URL</h1>
@@ -177,25 +142,64 @@
                 'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
             }).then(() => {
                 console.log('Google API client initialized.');
+                
+                // Check for main content
                 checkCalendar();
                 setInterval(checkCalendar, REFRESH_INTERVAL);
+
+                // We no longer check the ticker *calendar*
             }, (error) => {
                 console.error('Error initializing Google client:', error);
                 showDefaultView();
             });
         }
 
+        
+        // --- NEW: FUNCTION TO LOAD TICKER FROM FILE ---
         /**
-         * Checks the Google Calendar for any *currently active* event.
+         * Fetches the ticker.txt file from the repository.
          */
-        function checkCalendar() {
-            if (!currentSettings) return; // Don't run if config is missing
+        function loadTickerFile() {
+            // We add a cache-busting query to the URL
+            const url = `ticker.txt?t=${new Date().getTime()}`;
+            console.log('Fetching ticker file...');
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    if (text.trim()) {
+                        tickerContent.innerText = text.trim();
+                        
+                        // Dynamically adjust animation speed
+                        const duration = text.trim().length * 0.15;
+                        const animationDuration = Math.max(20, duration) + 's'; 
+                        tickerContent.style.animationDuration = animationDuration;
+                    } else {
+                        tickerContent.innerText = ''; // File is empty
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching ticker.txt:', error);
+                    tickerContent.innerText = ''; // Clear ticker on error
+                });
+        }
+        // --- END: NEW TICKER FUNCTION ---
 
+
+        // All other functions (checkCalendar, parseEvent, showDefaultView, etc.)
+        // remain exactly the same.
+        
+        function checkCalendar() {
+            if (!currentSettings) return;
             const now = new Date();
             console.log(`Checking calendar at ${now.toLocaleTimeString()}`);
-
             gapi.client.calendar.events.list({
-                'calendarId': currentSettings.calendarId, // <-- Uses current sign's ID
+                'calendarId': currentSettings.calendarId,
                 'timeMin': now.toISOString(),
                 'maxResults': 1,
                 'singleEvents': true,
@@ -206,11 +210,9 @@
                     showDefaultView();
                     return;
                 }
-
                 const event = events[0];
                 const eventStart = new Date(event.start.dateTime || event.start.date);
                 const eventEnd = new Date(event.end.dateTime || event.end.date);
-
                 if (now >= eventStart && now < eventEnd) {
                     console.log('Active event found:', event.summary);
                     parseEvent(event);
@@ -223,51 +225,31 @@
             });
         }
 
-        /**
-        * Parses the event's description to see what to display.
-        */
         function parseEvent(event) {
             const description = event.description || '';
-
-            // NEW: Command for an external slide
             if (description.includes('show=externalSlide&presId=')) {
                 try {
-                    // Parse the command: show=externalSlide&presId=YOUR_ID_HERE&slideId=4
                     const presId = description.split('presId=')[1].split('&')[0];
                     const slideId = description.split('slideId=')[1].split(' ')[0];
-
-                    // Call showSpecificSlide with the *external* presentation ID
                     showSpecificSlide(slideId, presId);
-
                 } catch (e) {
                     console.error('Could not parse external slide command.', e);
                     showDefaultView();
                 }
-
-            // UPDATED: Original command
             } else if (description.includes('show=slide&id=')) {
                 try {
                     const slideNumber = description.split('id=')[1].split(' ')[0];
-
-                    // Call showSpecificSlide with the *sign's default* presentation ID
                     showSpecificSlide(slideNumber, currentSettings.presentationId);
-
-                } catch (e) { // <-- The '}' was missing here in your code, I fixed it
+                } catch (e) {
                     console.error('Could not parse slide ID.', e);
                     showDefaultView();
                 }
-
-            // Unchanged
             } else if (description.includes('show=event')) {
                 showEventText(event);
-
-            // Unchanged
             } else {
                 showDefaultView();
             }
         }
-
-        // --- VIEW FUNCTIONS ---
 
         function showDefaultView() {
             if (defaultView.style.display === 'block') return;
@@ -276,36 +258,25 @@
             defaultView.style.display = 'block';
         }
 
-        // This is the NEW function
-        function showSpecificSlide(slideNumber, presentationId) { // <-- The change is here
+        function showSpecificSlide(slideNumber, presentationId) {
             console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
-            
-            // This URL now uses the presentationId variable
             const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}`;
-            
             eventTitle.innerText = '';
             eventTime.innerText = '';
             eventSlideContent.innerHTML = `<iframe src="${slideUrl}" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>`;
-
             defaultView.style.display = 'none';
             eventView.style.display = 'block';
         }
-
-        // THIS IS WHERE THE EXTRA '}' WAS. IT IS NOW REMOVED.
 
         function showEventText(event) {
             console.log(`Showing event text: ${event.summary}`);
             eventSlideContent.innerHTML = '';
             eventTitle.innerText = event.summary;
             eventTime.innerText = formatEventTime(event.start, event.end);
-
             defaultView.style.display = 'none';
             eventView.style.display = 'block';
         }
 
-        /**
-         * Helper function to make the event time look nice.
-         */
         function formatEventTime(start, end) {
             const options = { hour: 'numeric', minute: '2-digit' };
             const startTime = new Date(start.dateTime || start.date).toLocaleTimeString('en-US', options);
@@ -313,23 +284,16 @@
             return `${startTime} - ${endTime}`;
         }
         
-        /**
-         * Updates the on-screen clock and date.
-         */
         function updateClock() {
             const now = new Date();
             const timeOptions = { hour: '2-digit', minute: '2-digit' };
             const timeString = now.toLocaleTimeString('sv-SE', timeOptions);
-
             const weekdayOptions = { weekday: 'long' };
             let weekdayString = now.toLocaleDateString('sv-SE', weekdayOptions);
             weekdayString = weekdayString.charAt(0).toUpperCase() + weekdayString.slice(1);
-
             const dayMonthOptions = { day: 'numeric', month: 'long' };
             const dayMonthString = now.toLocaleDateString('sv-SE', dayMonthOptions);
-
             const formattedDate = `${weekdayString}<br><span class="clock-day-month">${dayMonthString}</span>`;
-
             document.getElementById('clock-time').innerText = timeString;
             document.getElementById('clock-date').innerHTML = formattedDate; 
         }
