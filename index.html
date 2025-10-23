@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IESV Digital Signage</title>
+    <style>
+        /* Basic reset and fullscreen settings */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* No scroll bars */
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #000;
+            color: #fff;
+        }
+
+        /* Fullscreen container for all views */
+        .view-container {
+            width: 100%;
+            height: 100%;
+            display: none; /* Hidden by default */
+        }
+
+        /* Default View: Looping Iframe */
+        #default-view {
+            display: block; /* Show this one on load */
+        }
+
+        /* Event View: For special announcements or single slides */
+        #event-view {
+            box-sizing: border-box;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #event-title {
+            font-size: 7vw; /* Responsive font size */
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        #event-time {
+            font-size: 4vw;
+            color: #ccc;
+        }
+
+        #event-slide-content {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Generic iframe style for both views */
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="default-view" class="view-container">
+        <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000" 
+                frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true">
+        </iframe>
+    </div>
+
+    <div id="event-view" class="view-container">
+        <div id="event-title"></div>
+        <div id="event-time"></div>
+        <div id="event-slide-content"></div>
+    </div>
+
+    <script type="text/javascript">
+        // --- CONFIGURATION ---
+        // ---------------------------------
+        // ❗ USER: PASTE YOUR NEW API KEY HERE
+        // ---------------------------------
+        const API_KEY = 'YOUR_API_KEY_HERE';
+
+        // Your project IDs
+        const CALENDAR_ID = 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com';
+        const PRESENTATION_ID = '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8';
+        
+        // How often to check the calendar (in milliseconds)
+        const REFRESH_INTERVAL = 60000; // 60,000ms = 1 minute
+        // ---------------------------------
+
+
+        // Get references to our HTML elements
+        const defaultView = document.getElementById('default-view');
+        const eventView = document.getElementById('event-view');
+        const eventTitle = document.getElementById('event-title');
+        const eventTime = document.getElementById('event-time');
+        const eventSlideContent = document.getElementById('event-slide-content');
+
+        /**
+         * Initializes the Google API client.
+         * This is the entry point.
+         */
+        function start() {
+            gapi.load('client', initClient);
+        }
+
+        function initClient() {
+            gapi.client.init({
+                'apiKey': API_KEY,
+                'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+            }).then(() => {
+                console.log('Google API client initialized.');
+                checkCalendar(); // Check immediately on load
+                setInterval(checkCalendar, REFRESH_INTERVAL); // Then check every minute
+            }, (error) => {
+                console.error('Error initializing Google client:', error);
+                // If API fails, just show the default view
+                showDefaultView();
+            });
+        }
+
+        /**
+         * Checks the Google Calendar for any *currently active* event.
+         */
+        function checkCalendar() {
+            const now = new Date();
+            console.log(`Checking calendar at ${now.toLocaleTimeString()}`);
+
+            gapi.client.calendar.events.list({
+                'calendarId': CALENDAR_ID,
+                'timeMin': now.toISOString(), // Events starting now or in the future
+                'maxResults': 1,               // Only need the very next one
+                'singleEvents': true,
+                'orderBy': 'startTime'
+            }).then((response) => {
+                const events = response.result.items;
+                if (!events || events.length === 0) {
+                    // No upcoming events, show default
+                    showDefaultView();
+                    return;
+                }
+
+                const event = events[0];
+                const eventStart = new Date(event.start.dateTime || event.start.date);
+                const eventEnd = new Date(event.end.dateTime || event.end.date);
+
+                // Check if 'now' is *between* the event's start and end time
+                if (now >= eventStart && now < eventEnd) {
+                    console.log('Active event found:', event.summary);
+                    parseEvent(event);
+                } else {
+                    // The next event isn't active right now
+                    showDefaultView();
+                }
+            }).catch((error) => {
+                console.error('Error fetching calendar:', error);
+                showDefaultView(); // On error, always revert to default
+            });
+        }
+
+        /**
+         * Parses the event's description to see what to display.
+         */
+        function parseEvent(event) {
+            const description = event.description || '';
+
+            // Command 1: Show a specific slide
+            if (description.includes('show=slide&id=')) {
+                try {
+                    const slideNumber = description.split('id=')[1].split(' ')[0]; // Get the number after 'id='
+                    showSpecificSlide(slideNumber);
+                } catch (e) {
+                    console.error('Could not parse slide ID.', e);
+                    showDefaultView();
+                }
+            }
+            // Command 2: Show the event text
+            else if (description.includes('show=event')) {
+                showEventText(event);
+            }
+            // Default: No valid command, show default view
+            else {
+                showDefaultView();
+            }
+        }
+
+        // --- VIEW FUNCTIONS ---
+
+        /**
+         * Shows the default looping slideshow.
+         */
+        function showDefaultView() {
+            if (defaultView.style.display === 'block') return; // Already visible
+            console.log('Showing default view.');
+            eventView.style.display = 'none';
+            defaultView.style.display = 'block';
+        }
+
+        /**
+         * Shows a specific Google Slide by its number.
+         */
+        function showSpecificSlide(slideNumber) {
+            console.log(`Showing specific slide: ${slideNumber}`);
+            // This URL is for an *embedded* slide, not the looping *published* one
+            const slideUrl = `https://docs.google.com/presentation/d/${PRESENTATION_ID}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}`;
+            
+            // Clear text fields
+            eventTitle.innerText = '';
+            eventTime.innerText = '';
+            
+            // Set the iframe content
+            eventSlideContent.innerHTML = `<iframe src="${slideUrl}" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>`;
+
+            // Show the event view
+            defaultView.style.display = 'none';
+            eventView.style.display = 'block';
+        }
+
+        /**
+         * Shows the event's title and time on a blank screen.
+         */
+        function showEventText(event) {
+            console.log(`Showing event text: ${event.summary}`);
+            // Clear any old slide content
+            eventSlideContent.innerHTML = '';
+            
+            // Set the text content
+            eventTitle.innerText = event.summary;
+            eventTime.innerText = formatEventTime(event.start, event.end);
+
+            // Show the event view
+            defaultView.style.display = 'none';
+            eventView.style.display = 'block';
+        }
+
+        /**
+         * Helper function to make the event time look nice.
+         */
+        function formatEventTime(start, end) {
+            const options = { hour: 'numeric', minute: '2-digit' };
+            const startTime = new Date(start.dateTime || start.date).toLocaleTimeString('en-US', options);
+            const endTime = new Date(end.dateTime || end.date).toLocaleTimeString('en-US', options);
+            return `${startTime} - ${endTime}`;
+        }
+
+    </script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="start()"></script>
+</body>
+</html>
