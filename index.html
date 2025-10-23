@@ -164,10 +164,10 @@
                 // Show an error if the URL is wrong
                 console.error('Invalid or missing sign ID in URL.');
                 document.body.innerHTML = `<h1 style="color:red; padding: 50px;">
-                    Configuration Error: Invalid URL</h1>
-                    <p style="color:white; padding: 0 50px;">
-                    Please add <strong>?sign=junior</strong> or <strong>?sign=senior</strong> to the end of the URL.
-                    </p>`;
+                        Configuration Error: Invalid URL</h1>
+                        <p style="color:white; padding: 0 50px;">
+                        Please add <strong>?sign=junior</strong> or <strong>?sign=senior</strong> to the end of the URL.
+                        </p>`;
             }
         }
 
@@ -224,48 +224,48 @@
         }
 
         /**
- * Parses the event's description to see what to display.
- */
-function parseEvent(event) {
-    const description = event.description || '';
+        * Parses the event's description to see what to display.
+        */
+        function parseEvent(event) {
+            const description = event.description || '';
 
-    // NEW: Command for an external slide
-    if (description.includes('show=externalSlide&presId=')) {
-        try {
-            // Parse the command: show=externalSlide&presId=YOUR_ID_HERE&slideId=4
-            const presId = description.split('presId=')[1].split('&')[0];
-            const slideId = description.split('slideId=')[1].split(' ')[0];
+            // NEW: Command for an external slide
+            if (description.includes('show=externalSlide&presId=')) {
+                try {
+                    // Parse the command: show=externalSlide&presId=YOUR_ID_HERE&slideId=4
+                    const presId = description.split('presId=')[1].split('&')[0];
+                    const slideId = description.split('slideId=')[1].split(' ')[0];
 
-            // Call showSpecificSlide with the *external* presentation ID
-            showSpecificSlide(slideId, presId);
+                    // Call showSpecificSlide with the *external* presentation ID
+                    showSpecificSlide(slideId, presId);
 
-        } catch (e) {
-            console.error('Could not parse external slide command.', e);
-            showDefaultView();
+                } catch (e) {
+                    console.error('Could not parse external slide command.', e);
+                    showDefaultView();
+                }
+
+            // UPDATED: Original command
+            } else if (description.includes('show=slide&id=')) {
+                try {
+                    const slideNumber = description.split('id=')[1].split(' ')[0];
+
+                    // Call showSpecificSlide with the *sign's default* presentation ID
+                    showSpecificSlide(slideNumber, currentSettings.presentationId);
+
+                } catch (e) { // <-- The '}' was missing here in your code, I fixed it
+                    console.error('Could not parse slide ID.', e);
+                    showDefaultView();
+                }
+
+            // Unchanged
+            } else if (description.includes('show=event')) {
+                showEventText(event);
+
+            // Unchanged
+            } else {
+                showDefaultView();
+            }
         }
-
-    // UPDATED: Original command
-    } else if (description.includes('show=slide&id=')) {
-        try {
-            const slideNumber = description.split('id=')[1].split(' ')[0];
-
-            // Call showSpecificSlide with the *sign's default* presentation ID
-            showSpecificSlide(slideNumber, currentSettings.presentationId);
-
-        } catch (e) {
-            console.error('Could not parse slide ID.', e);
-            showDefaultView();
-        }
-
-    // Unchanged
-    } else if (description.includes('show=event')) {
-        showEventText(event);
-
-    // Unchanged
-    } else {
-        showDefaultView();
-    }
-}
 
         // --- VIEW FUNCTIONS ---
 
@@ -276,21 +276,22 @@ function parseEvent(event) {
             defaultView.style.display = 'block';
         }
 
-// This is the NEW function
-function showSpecificSlide(slideNumber, presentationId) { // <-- The change is here
-    console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
-    
-    // This URL now uses the presentationId variable
-    const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}`;
-    
-    eventTitle.innerText = '';
-    eventTime.innerText = '';
-    eventSlideContent.innerHTML = `<iframe src="${slideUrl}" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>`;
+        // This is the NEW function
+        function showSpecificSlide(slideNumber, presentationId) { // <-- The change is here
+            console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
+            
+            // This URL now uses the presentationId variable
+            const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}`;
+            
+            eventTitle.innerText = '';
+            eventTime.innerText = '';
+            eventSlideContent.innerHTML = `<iframe src="${slideUrl}" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>`;
 
-    defaultView.style.display = 'none';
-    eventView.style.display = 'block';
-}
+            defaultView.style.display = 'none';
+            eventView.style.display = 'block';
         }
+
+        // THIS IS WHERE THE EXTRA '}' WAS. IT IS NOW REMOVED.
 
         function showEventText(event) {
             console.log(`Showing event text: ${event.summary}`);
