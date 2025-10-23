@@ -282,28 +282,38 @@
         }
 
         
-        /* --- NEW CLOCK FUNCTION --- */
-        /**
-         * Updates the on-screen clock and date.
-         */
-        function updateClock() {
-            const now = new Date();
-            
-            // Using 'sv-SE' (Swedish) locale for formatting
-            const timeOptions = { hour: '2-digit', minute: '2-digit' };
-            const timeString = now.toLocaleTimeString('sv-SE', timeOptions);
-            
-            const dateOptions = { weekday: 'long', day: 'numeric', month: 'long' };
-            const dateString = now.toLocaleDateString('sv-SE', dateOptions);
+       /* --- NEW CLOCK FUNCTION --- */
+/**
+ * Updates the on-screen clock and date.
+ */
+function updateClock() {
+    const now = new Date();
 
-            // Capitalize the first letter of the date string (e.g., "torsdag" -> "Torsdag")
-            const formattedDate = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+    // --- TIME (Unchanged) ---
+    // Using 'sv-SE' (Swedish) locale for formatting
+    const timeOptions = { hour: '2-digit', minute: '2-digit' };
+    const timeString = now.toLocaleTimeString('sv-SE', timeOptions);
 
-            document.getElementById('clock-time').innerText = timeString;
-            document.getElementById('clock-date').innerText = formattedDate;
-        }
-        /* --- END NEW CLOCK FUNCTION --- */
+    // --- DATE (Updated for two lines) ---
+    // 1. Get the weekday
+    const weekdayOptions = { weekday: 'long' };
+    let weekdayString = now.toLocaleDateString('sv-SE', weekdayOptions);
+    // Capitalize the first letter (e.g., "torsdag" -> "Torsdag")
+    weekdayString = weekdayString.charAt(0).toUpperCase() + weekdayString.slice(1);
 
+    // 2. Get the day and month
+    const dayMonthOptions = { day: 'numeric', month: 'long' };
+    const dayMonthString = now.toLocaleDateString('sv-SE', dayMonthOptions); // e.g., "23 oktober"
+
+    // 3. Combine them with a line break
+    const formattedDate = `${weekdayString}<br>${dayMonthString}`;
+
+    // --- Update HTML ---
+    document.getElementById('clock-time').innerText = timeString;
+    // Use .innerHTML to render the <br> tag
+    document.getElementById('clock-date').innerHTML = formattedDate; 
+}
+/* --- END NEW CLOCK FUNCTION --- */
 
     </script>
     <script async defer src="https://apis.google.com/js/api.js" onload="start()"></script>
