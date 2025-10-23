@@ -16,6 +16,29 @@
             background-color: #000;
             color: #fff;
         }
+        
+        /* --- NEW CLOCK STYLES --- */
+        #clock-container {
+            position: fixed; /* Floats on top of everything */
+            top: 30px;
+            left: 40px;
+            z-index: 100; /* Ensures it's on top of the slides */
+            color: #fff;
+            text-align: left;
+            /* Adds a subtle shadow to make text readable on any background */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        #clock-time {
+            font-size: 5vw; /* Large, responsive font for the time */
+            font-weight: bold;
+        }
+
+        #clock-date {
+            font-size: 2vw; /* Smaller font for the date */
+        }
+        /* --- END NEW CLOCK STYLES --- */
+
 
         /* Fullscreen container for all views */
         .view-container {
@@ -66,6 +89,10 @@
 </head>
 <body>
 
+    <div id="clock-container">
+        <div id="clock-time">11:49</div>
+        <div id="clock-date">torsdag 23 oktober</div>
+    </div>
     <div id="default-view" class="view-container">
         <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000" 
                 frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true">
@@ -106,6 +133,12 @@
          * This is the entry point.
          */
         function start() {
+            // --- NEW CLOCK STARTER ---
+            // Start the clock as soon as the page loads
+            updateClock();
+            setInterval(updateClock, 1000); // Update every second
+            // --- END NEW CLOCK STARTER ---
+
             gapi.load('client', initClient);
         }
 
@@ -247,6 +280,30 @@
             const endTime = new Date(end.dateTime || end.date).toLocaleTimeString('en-US', options);
             return `${startTime} - ${endTime}`;
         }
+
+        
+        /* --- NEW CLOCK FUNCTION --- */
+        /**
+         * Updates the on-screen clock and date.
+         */
+        function updateClock() {
+            const now = new Date();
+            
+            // Using 'sv-SE' (Swedish) locale for formatting
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            const timeString = now.toLocaleTimeString('sv-SE', timeOptions);
+            
+            const dateOptions = { weekday: 'long', day: 'numeric', month: 'long' };
+            const dateString = now.toLocaleDateString('sv-SE', dateOptions);
+
+            // Capitalize the first letter of the date string (e.g., "torsdag" -> "Torsdag")
+            const formattedDate = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+
+            document.getElementById('clock-time').innerText = timeString;
+            document.getElementById('clock-date').innerText = formattedDate;
+        }
+        /* --- END NEW CLOCK FUNCTION --- */
+
 
     </script>
     <script async defer src="https://apis.google.com/js/api.js" onload="start()"></script>
