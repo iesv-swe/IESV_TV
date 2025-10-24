@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IESV Digital Signage</title>
+    <style>
+        /* All styles are unchanged */
+        html, body {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; font-family: Arial, Helvetica, sans-serif;
+            background-color: #000; color: #fff;
+        }
+        #clock-container {
+            position: fixed; top: 15px; right: 15px; z-index: 100;
+            color: #fff; text-align: right; text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
+        }
+        #clock-time { font-size: 2.5vw; font-weight: bold; }
+        #clock-date { font-size: 1vw; }
+        .clock-day-month { font-size: 0.8vw; color: #ccc; }
+        .view-container { width: 100%; height: 100%; display: none; }
+        #default-view { display: block; }
+        #event-view {
+            box-sizing: border-box; padding: 50px; display: flex;
+            flex-direction: column; justify-content: center;
+            align-items: center; text-align: center;
+        }
+        #event-title { font-size: 7vw; font-weight: bold; margin-bottom: 20px; }
+        #event-time { font-size: 4vw; color: #ccc; }
+        #event-slide-content { width: 100%; height: 100%; }
+        iframe { width: 100%; height: 100%; border: 0; }
+        #ticker-wrap {
+            position: fixed; bottom: 20px;
+            left: 0; width: 100%;
+            height: 60px; background-color: rgba(0, 0, 0, 0.7);
+            overflow: hidden; z-index: 99; box-sizing: border-box;
+        }
+        #ticker-content {
+            display: block; position: absolute; height: 100%;
+            line-height: 60px; font-size: 30px; color: #fff;
+            white-space: nowrap; will-change: transform;
+            animation-name: ticker-scroll;
+            animation-duration: 10s;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+        @keyframes ticker-scroll {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="clock-container">
+        <div id="clock-time"></div>
+        <div id="clock-date"></div>
+    </div>
+    <div id="default-view" class="view-container">
+        <iframe id="default-iframe" frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    </div>
+    <div id="event-view" class="view-container">
+        <div id="event-title"></div>
+        <div id="event-time"></div>
+        <div id="event-slide-content"></div>
+    </div>
+    <div id="ticker-wrap">
+        <div id="ticker-content"></div>
+    </div>
+
+
+    <script typetext/javascript">
+        // ---------------------------------
+        // --- CONFIGURATION ---
+        // ---------------------------------
+        const API_KEY = 'AIzaSyBC6IsECB620ykggdNvRJzD7BivHEmvToA'; // ❗ PASTE YOUR API KEY HERE
+
+        const SIGNAGE_CONFIGS = {
+            'junior': {
+                calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
+                presentationId: '1Hm9DlVNLmN0tKTD7tR9b0vdu3AMTPNkLdLUdotyKlhM',
+                tickerFile: 'ticker-junior.txt',
+                defaultRotation: [
+                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next-Junior/', duration: 15000 }
+                ]
+            },
+            'senior': {
+                calendarId: 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com',
+                presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8', // This is for 'show=slide'
+                tickerFile: 'ticker-senior.txt',
+                defaultRotation: [
+                    // --- ⬇️ PASTE YOUR 'pubembed' LINK HERE ⬇️ ---
+                    { url: 'PASTE_YOUR_SENIOR_PUBEMBED_LINK_HERE?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next-Senior/', duration: 15000 }
+                ]
+            }
+        };
+        
+        const REFRESH_INTERVAL = 60000;
+        let currentSettings = null; 
+        
+        let rotationTimer = null;
+        let rotationIndex = 0;
+        // ---------------------------------
+        // --- END CONFIGURATION ---
+        // ---------------------------------
+
+        // All JavaScript below this line is correct and unchanged
+
+        const defaultView = document.getElementById('default-view');
+        const eventView = document.getElementById('event-view');
+        const eventTitle = document.getElementById('event-title');
+        const eventTime = document.getElementById('event-time');
+        const eventSlideContent = document.getElementById('event-slide-content');
+        const defaultIframe = document.getElementById('default-iframe');
+        const tickerContent = document.getElementById('ticker-content');
+
+
+        function start() {
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const signId = urlParams.get('sign');
+
+            if (signId && SIGNAGE_CONFIGS[signId]) {
+                currentSettings = SIGNAGE_CONFIGS[signId];
+                console.log(`Loading configuration for: ${signId}`);
+                
+                loadTickerFile();
+                setInterval(loadTickerFile, REFRESH_INTERVAL * 5);
+                
+                gapi.load('client', initClient);
+            } else {
+                console.error('Invalid or missing sign ID in URL.');
+                document.body.innerHTML = `<h1 style="color:red; padding: 50px;">
+                        Configuration Error: Invalid URL</h1>
+                        <p style="color:white; padding: 0 50px;">
+                        Please add <strong>?sign=junior</strong> or <strong>?sign=senior</strong> to the end of the URL.
+                        </p>`;
+            }
+        }
+
+        function initClient() {
+            gapi.client.init({
+                'apiKey': API_KEY,
+                'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+            }).then(() => {
+                console.log('Google API client initialized.');
+                
+                checkCalendar();
+                setInterval(checkCalendar, REFRESH_INTERVAL);
+            }, (error) => {
+                console.error('Error initializing Google client:', error);
+                showDefaultView();
+            });
+        }
+
+        
+        function loadTickerFile() {
+            const tickerFile = currentSettings ? currentSettings.tickerFile : null;
+            if (!tickerFile) {
+                tickerContent.innerText = '';
+                return;
+            }
+            
+            const url = `${tickerFile}?t=${new Date().getTime()}`;
+            console.log(`Fetching ticker file: ${tickerFile}`);
+            
+            fetch(url)
+                .then(response => response.text())
+                .then(text => {
+                    if (text.trim()) {
+                        tickerContent.innerText = text.trim();
+                        const duration = text.trim().length * 0.15;
+                        const animationDuration = Math.max(10, duration) + 's'; 
+                        tickerContent.style.animationDuration = animationDuration;
+                    } else {
+                        tickerContent.innerText = '';
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error fetching ${tickerFile}:`, error);
+                    tickerContent.innerText = '';
+                });
+        }
+
+        
+        function checkCalendar() {
+            if (!currentSettings) return;
+            const now = new Date();
+            console.log(`Checking calendar at ${now.toLocaleTimeString()}`);
+            gapi.client.calendar.events.list({
+                'calendarId': currentSettings.calendarId,
+                'timeMin': now.toISOString(),
+                'maxResults': 1,
+                'singleEvents': true,
+                'orderBy': 'startTime'
+            }).then((response) => {
+                const events = response.result.items;
+                if (!events || events.length === 0) {
+                    showDefaultView();
+                    return;
+                }
+                const event = events[0];
+                const eventStart = new Date(event.start.dateTime || event.start.date);
+                const eventEnd = new Date(event.end.dateTime || event.end.date);
+                if (now >= eventStart && now < eventEnd) {
+                    console.log('Active event found:', event.summary);
+                    parseEvent(event);
+                } else {
+                    showDefaultView();
+                }
+            }).catch((error) => {
+                console.error('Error fetching calendar:', error);
+                showDefaultView();
+            });
+        }
+
+        function parseEvent(event) {
+            const description = event.description || '';
+            if (description.includes('show=externalSlide&presId=')) {
+                try {
+                    const presId = description.split('presId=')[1].split('&')[0];
+                    const slideId = description.split('slideId=')[1].split(' ')[0];
+                    showSpecificSlide(slideId, presId);
+                } catch (e) {
+                    console.error('Could not parse external slide command.', e);
+                    showDefaultView();
+                }
+            } else if (description.includes('show=slide&id=')) {
+                try {
+                    const slideNumber = description.split('id=')[1].split(' ')[0];
+                    showSpecificSlide(slideNumber, currentSettings.presentationId);
+                } catch (e) {
+                    console.error('Could not parse slide ID.', e);
+                    showDefaultView();
+                }
+            } else if (description.includes('show=event')) {
+                showEventText(event);
+            } else {
+                showDefaultView();
+            }
+        }
+
+        function showDefaultView() {
+            if (defaultView.style.display === 'block') return;
+            
+            console.log('Showing default view and starting rotation.');
+            eventView.style.display = 'none';
+            defaultView.style.display = 'block';
+
+            if (rotationTimer) clearTimeout(rotationTimer);
+            
+            rotationIndex = 0;
+            rotateDefaultView();
+        }
+        
+        function rotateDefaultView() {
+            const pages = currentSettings.defaultRotation;
+            if (!pages || pages.length === 0) return;
+
+            const currentPage = pages[rotationIndex];
+            defaultIframe.src = currentPage.url;
+            console.log(`Rotating to: ${currentPage.url} for ${currentPage.duration}ms`);
+
+            rotationIndex = (rotationIndex + 1) % pages.length;
+
+            rotationTimer = setTimeout(rotateDefaultView, currentPage.duration);
+        }
+
+        function showSpecificSlide(slideNumber, presentationId) {
+            if (rotationTimer) clearTimeout(rotationTimer);
+            
+            console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
+            const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}&rm=minimal`;
+            eventTitle.innerText = '';
+            eventTime.innerText = '';
+            eventSlideContent.innerHTML = `<iframe src="${slideUrl}" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>`;
+            
+            defaultView.style.display = 'none';
+            eventView.style.display = 'block';
+        }
+
+        function showEventText(event) {
+            if (rotationTimer) clearTimeout(rotationTimer);
+            
+            console.log(`Showing event text: ${event.summary}`);
+            eventSlideContent.innerHTML = '';
+            eventTitle.innerText = event.summary;
+            eventTime.innerText = formatEventTime(event.start, event.end);
+            
+            defaultView.style.display = 'none';
+            eventView.style.display = 'block';
+        }
+
+        function formatEventTime(start, end) {
+            const options = { hour: 'numeric', minute: '2-digit' };
+            const startTime = new Date(start.dateTime || start.date).toLocaleTimeString('en-US', options);
+            const endTime = new Date(end.dateTime || end.date).toLocaleTimeString('en-US', options);
+            return `${startTime} - ${endTime}`;
+        }
+        
+        function updateClock() {
+            const now = new Date();
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            const timeString = now.toLocaleTimeString('sv-SE', timeOptions);
+            
+            const weekdayOptions = { weekday: 'long' };
+            let weekdayString = now.toLocaleDateString('sv-SE', weekdayOptions);
+            weekdayString = weekdayString.charAt(0).toUpperCase() + weekdayString.slice(1);
+            
+            const dayMonthOptions = { day: 'numeric', month: 'long' };
+            const dayMonthString = now.toLocaleDateString('sv-SE', dayMonthOptions);
+
+            const formattedDate = `${weekdayString}<br><span class="clock-day-month">${dayMonthString}</span>`;
+
+            document.getElementById('clock-time').innerText = timeString;
+            document.getElementById('clock-date').innerHTML = formattedDate; 
+        }
+
+    </script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="start()"></script>
+</body>
+</html>
