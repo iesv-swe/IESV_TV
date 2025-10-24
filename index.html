@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IESV Digital Signage</title>
     <style>
-        /* --- THIS IS THE FULL, CORRECT STYLE BLOCK --- */
-        
         /* Basic reset and fullscreen settings */
         html, body {
             margin: 0; padding: 0; height: 100%; width: 100%;
@@ -16,12 +14,12 @@
         
         /* Clock Styles */
         #clock-container {
-            position: fixed; top: 20px; right: 25px; z-index: 100;
+            position: fixed; top: 15px; right: 15px; z-index: 100;
             color: #fff; text-align: right; text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
         }
         #clock-time { font-size: 2.5vw; font-weight: bold; }
         #clock-date { font-size: 1vw; }
-        .clock-day-month { font-size: 0.8vw; color: #333; }
+        .clock-day-month { font-size: 0.8vw; color: #ccc; }
         
         /* View container styles */
         .view-container { width: 100%; height: 100%; display: none; }
@@ -40,8 +38,9 @@
         
         /* Ticker styles */
         #ticker-wrap {
-            position: fixed; bottom: 35px; left: 0; width: 100%;
-            height: 60px; background-color: rgba(1, 1, 1, 1);
+            position: fixed; bottom: 20px; /* Moved up 20px */
+            left: 0; width: 100%;
+            height: 60px; background-color: rgba(0, 0, 0, 0.7);
             overflow: hidden; z-index: 99; box-sizing: border-box;
         }
 
@@ -51,9 +50,8 @@
             line-height: 60px; font-size: 30px; color: #fff;
             white-space: nowrap; will-change: transform;
             
-            /* Un-bundled animation properties */
             animation-name: ticker-scroll;
-            animation-duration: 10s; /* Default speed */
+            animation-duration: 10s;
             animation-timing-function: linear;
             animation-iteration-count: infinite;
         }
@@ -61,13 +59,12 @@
         /* Fixed keyframes */
         @keyframes ticker-scroll {
             0% { 
-                transform: translateX(100vw); /* Starts at the right edge of the screen */
+                transform: translateX(100vw);
             }
             100% { 
-                transform: translateX(-100%); /* Ends at the left edge of the text */
+                transform: translateX(-100%);
             }
         }
-        /* --- END OF STYLE BLOCK --- */
     </style>
 </head>
 <body>
@@ -96,18 +93,20 @@
         // ---------------------------------
         // --- CONFIGURATION ---
         // ---------------------------------
-        const API_KEY = 'AIzaSyBC6IsECB620ykggdNvRJzD7BivHEmvToA'; // ❗ PASTE YOUR API KEY HERE
+        const API_KEY = ''; // ❗ PASTE YOUR API KEY HERE
 
         const SIGNAGE_CONFIGS = {
             'junior': {
                 calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
                 presentationId: '1Hm9DlVNLmN0tKTD7tR9b0vdu3AMTPNkLdLUdotyKlhM',
-                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000'
+                // --- CHANGED HERE ---
+                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal'
             },
             'senior': {
                 calendarId: 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com',
                 presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8',
-                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000'
+                // --- CHANGED HERE ---
+                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7YYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal'
             }
         };
         
@@ -140,7 +139,7 @@
                 defaultIframe.src = currentSettings.defaultUrl;
                 
                 loadTickerFile();
-                setInterval(loadTickerFile, REFRESH_INTERVAL * 5); // Refresh ticker file every 5 mins
+                setInterval(loadTickerFile, REFRESH_INTERVAL * 5);
                 
                 gapi.load('client', initClient);
             } else {
@@ -264,7 +263,8 @@
 
         function showSpecificSlide(slideNumber, presentationId) {
             console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
-            const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}`;
+            // --- CHANGED HERE ---
+            const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}&rm=minimal`;
             eventTitle.innerText = '';
             eventTime.innerText = '';
             eventSlideContent.innerHTML = `<iframe src="${slideUrl}" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>`;
