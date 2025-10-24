@@ -88,15 +88,15 @@
                 ]
             },
             'senior': {
-                calendarId: 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com',
-                presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8',
-                tickerFile: 'ticker-senior.txt',
-                defaultRotation: [
-                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7YYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 }, // 45 seconds
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/', duration: 15000 } // 15 seconds
-                ]
-            }
-        };
+    calendarId: 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com',
+    presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8', // This line is correct
+    tickerFile: 'ticker-senior.txt',
+    defaultRotation: [
+        // This is the NEW link you just copied
+        { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+        { url: 'https://iesv-swe.github.io/IESV-Now-and-Next-Senior/', duration: 15000 }
+    ]
+},
         
         const REFRESH_INTERVAL = 60000; // 1 minute
         let currentSettings = null; 
