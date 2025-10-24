@@ -38,16 +38,15 @@
         
         /* Ticker styles */
         #ticker-wrap {
-            position: fixed; bottom: 0; /* Moved up 20px */
+            position: fixed; bottom: 20px;
             left: 0; width: 100%;
-            height: 80px; background-color: rgba(0, 0, 0, 0.7);
+            height: 60px; background-color: rgba(0, 0, 0, 0.7);
             overflow: hidden; z-index: 99; box-sizing: border-box;
         }
 
-        /* Fixed ticker content style */
         #ticker-content {
             display: block; position: absolute; height: 100%;
-            line-height: 60px; font-size: 60px; color: #fff;
+            line-height: 60px; font-size: 30px; color: #fff;
             white-space: nowrap; will-change: transform;
             
             animation-name: ticker-scroll;
@@ -56,14 +55,9 @@
             animation-iteration-count: infinite;
         }
         
-        /* Fixed keyframes */
         @keyframes ticker-scroll {
-            0% { 
-                transform: translateX(100vw);
-            }
-            100% { 
-                transform: translateX(-100%);
-            }
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
         }
     </style>
 </head>
@@ -73,17 +67,14 @@
         <div id="clock-time"></div>
         <div id="clock-date"></div>
     </div>
-
     <div id="default-view" class="view-container">
         <iframe id="default-iframe" frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
     </div>
-
     <div id="event-view" class="view-container">
         <div id="event-title"></div>
         <div id="event-time"></div>
         <div id="event-slide-content"></div>
     </div>
-
     <div id="ticker-wrap">
         <div id="ticker-content"></div>
     </div>
@@ -95,18 +86,19 @@
         // ---------------------------------
         const API_KEY = ''; // ❗ PASTE YOUR API KEY HERE
 
+        // --- CHANGED: Added 'tickerFile' to each sign ---
         const SIGNAGE_CONFIGS = {
             'junior': {
                 calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
                 presentationId: '1Hm9DlVNLmN0tKTD7tR9b0vdu3AMTPNkLdLUdotyKlhM',
-                // --- CHANGED HERE ---
-                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal'
+                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal',
+                tickerFile: 'ticker-junior.txt' // <-- NEW
             },
             'senior': {
                 calendarId: 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com',
                 presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8',
-                // --- CHANGED HERE ---
-                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7YYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal'
+                defaultUrl: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7YYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal',
+                tickerFile: 'ticker-senior.txt' // <-- NEW
             }
         };
         
@@ -168,9 +160,20 @@
         }
 
         
+        // --- CHANGED: This function now reads the filename from 'currentSettings' ---
         function loadTickerFile() {
-            const url = `ticker.txt?t=${new Date().getTime()}`;
-            console.log('Fetching ticker file...');
+            // Get the specific ticker file for the current sign
+            const tickerFile = currentSettings ? currentSettings.tickerFile : null;
+
+            if (!tickerFile) {
+                console.warn('No ticker file is specified for this sign.');
+                tickerContent.innerText = '';
+                return; // Do nothing if no file is set
+            }
+            
+            // Add cache-busting query
+            const url = `${tickerFile}?t=${new Date().getTime()}`;
+            console.log(`Fetching ticker file: ${tickerFile}`);
             
             fetch(url)
                 .then(response => {
@@ -191,10 +194,11 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching ticker.txt:', error);
+                    console.error(`Error fetching ${tickerFile}:`, error);
                     tickerContent.innerText = '';
                 });
         }
+        // --- END OF CHANGES ---
 
         
         function checkCalendar() {
@@ -263,7 +267,6 @@
 
         function showSpecificSlide(slideNumber, presentationId) {
             console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
-            // --- CHANGED HERE ---
             const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}&rm=minimal`;
             eventTitle.innerText = '';
             eventTime.innerText = '';
