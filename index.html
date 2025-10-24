@@ -69,44 +69,44 @@
     </div>
 
 
-    <script type="text/javascript">
+    <script typetext/javascript">
         // ---------------------------------
         // --- CONFIGURATION ---
         // ---------------------------------
         const API_KEY = 'AIzaSyBC6IsECB620ykggdNvRJzD7BivHEmvToA'; // ❗ PASTE YOUR API KEY HERE
 
-        // --- UPDATED: 'defaultUrl' is now 'defaultRotation' ---
-        // You can add more pages or change the duration (in milliseconds)
         const SIGNAGE_CONFIGS = {
             'junior': {
                 calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
                 presentationId: '1Hm9DlVNLmN0tKTD7tR9b0vdu3AMTPNkLdLUdotyKlhM',
                 tickerFile: 'ticker-junior.txt',
                 defaultRotation: [
-                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 }, // 45 seconds
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/', duration: 15000 } // 15 seconds
+                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next-Junior/', duration: 15000 }
                 ]
             },
             'senior': {
-    calendarId: 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com',
-    presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8', // This line is correct
-    tickerFile: 'ticker-senior.txt',
-    defaultRotation: [
-        // This is the NEW link you just copied
-        { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
-        { url: 'https://iesv-swe.github.io/IESV-Now-and-Next-Senior/', duration: 15000 }
-    ]
-},
+                calendarId: 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com',
+                presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8', // This is for 'show=slide'
+                tickerFile: 'ticker-senior.txt',
+                defaultRotation: [
+                    // --- ⬇️ PASTE YOUR 'pubembed' LINK HERE ⬇️ ---
+                    { url: 'PASTE_YOUR_SENIOR_PUBEMBED_LINK_HERE?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next-Senior/', duration: 15000 }
+                ]
+            }
+        };
         
-        const REFRESH_INTERVAL = 60000; // 1 minute
+        const REFRESH_INTERVAL = 60000;
         let currentSettings = null; 
         
-        // --- NEW: Global variables for the rotation ---
         let rotationTimer = null;
         let rotationIndex = 0;
         // ---------------------------------
         // --- END CONFIGURATION ---
         // ---------------------------------
+
+        // All JavaScript below this line is correct and unchanged
 
         const defaultView = document.getElementById('default-view');
         const eventView = document.getElementById('event-view');
@@ -127,8 +127,6 @@
             if (signId && SIGNAGE_CONFIGS[signId]) {
                 currentSettings = SIGNAGE_CONFIGS[signId];
                 console.log(`Loading configuration for: ${signId}`);
-                
-                // We no longer set the iframe src here, showDefaultView() will
                 
                 loadTickerFile();
                 setInterval(loadTickerFile, REFRESH_INTERVAL * 5);
@@ -151,11 +149,11 @@
             }).then(() => {
                 console.log('Google API client initialized.');
                 
-                checkCalendar(); // Check immediately
-                setInterval(checkCalendar, REFRESH_INTERVAL); // And every minute
+                checkCalendar();
+                setInterval(checkCalendar, REFRESH_INTERVAL);
             }, (error) => {
                 console.error('Error initializing Google client:', error);
-                showDefaultView(); // If API fails, just start the default loop
+                showDefaultView();
             });
         }
 
@@ -202,7 +200,7 @@
             }).then((response) => {
                 const events = response.result.items;
                 if (!events || events.length === 0) {
-                    showDefaultView(); // No events, show default rotation
+                    showDefaultView();
                     return;
                 }
                 const event = events[0];
@@ -210,9 +208,9 @@
                 const eventEnd = new Date(event.end.dateTime || event.end.date);
                 if (now >= eventStart && now < eventEnd) {
                     console.log('Active event found:', event.summary);
-                    parseEvent(event); // Event found, show it
+                    parseEvent(event);
                 } else {
-                    showDefaultView(); // Event is not active, show default rotation
+                    showDefaultView();
                 }
             }).catch((error) => {
                 console.error('Error fetching calendar:', error);
@@ -246,41 +244,34 @@
             }
         }
 
-        // --- UPDATED: This function now starts the rotation ---
         function showDefaultView() {
-            if (defaultView.style.display === 'block') return; // Already visible, rotation is already running
+            if (defaultView.style.display === 'block') return;
             
             console.log('Showing default view and starting rotation.');
             eventView.style.display = 'none';
             defaultView.style.display = 'block';
 
-            // Clear any old timer
             if (rotationTimer) clearTimeout(rotationTimer);
             
-            rotationIndex = 0; // Start rotation from the first page
+            rotationIndex = 0;
             rotateDefaultView();
         }
         
-        // --- NEW: This function handles the page rotation ---
         function rotateDefaultView() {
             const pages = currentSettings.defaultRotation;
-            if (!pages || pages.length === 0) return; // Safety check
+            if (!pages || pages.length === 0) return;
 
-            // 1. Get the current page and set the iframe src
             const currentPage = pages[rotationIndex];
             defaultIframe.src = currentPage.url;
             console.log(`Rotating to: ${currentPage.url} for ${currentPage.duration}ms`);
 
-            // 2. Set the index for the *next* rotation
             rotationIndex = (rotationIndex + 1) % pages.length;
 
-            // 3. Set a timer to call this function again after the duration
             rotationTimer = setTimeout(rotateDefaultView, currentPage.duration);
         }
 
-        // --- UPDATED: Event functions must now STOP the rotation ---
         function showSpecificSlide(slideNumber, presentationId) {
-            if (rotationTimer) clearTimeout(rotationTimer); // Stop default rotation
+            if (rotationTimer) clearTimeout(rotationTimer);
             
             console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
             const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}&rm=minimal`;
@@ -292,9 +283,8 @@
             eventView.style.display = 'block';
         }
 
-        // --- UPDATED: Event functions must now STOP the rotation ---
         function showEventText(event) {
-            if (rotationTimer) clearTimeout(rotationTimer); // Stop default rotation
+            if (rotationTimer) clearTimeout(rotationTimer);
             
             console.log(`Showing event text: ${event.summary}`);
             eventSlideContent.innerHTML = '';
