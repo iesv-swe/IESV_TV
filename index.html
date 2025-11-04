@@ -12,32 +12,36 @@
             background-color: #000; color: #fff;
         }
 
-        /* --- Header Bar (Top Zone) --- */
+        /* --- 1. MODIFIED: Header Bar --- */
         #header-bar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 110px; 
+            height: 110px; /* Kept 110px height */
             background-color: #000;
             z-index: 100;
             display: flex;
-            justify-content: space-between;
+            justify-content: center; /* <-- CHANGED: Now centers main content */
             align-items: center;
             box-sizing: border-box;
         }
 
-        /* --- THIS IS THE LINE I CHANGED --- */
+        /* --- 2. MODIFIED: Weather Container --- */
         #weather-container {
-            width: 1200px; /* Was 500px. Set to 1200px as requested. */
-            padding-center: 20px;
+            width: 1200px;
+            /* Removed padding-left, as it's now centered */
         }
         
+        /* --- 3. MODIFIED: Clock Container --- */
         #clock-container {
-            position: relative;
+            position: absolute; /* <-- CHANGED: Pulled out of flex layout */
+            right: 20px;      /* <-- ADDED: Pinned 20px from the right */
+            top: 50%;         /* <-- ADDED: Vertically centered... */
+            transform: translateY(-50%); /* <-- ...with this transform trick */
+
             text-align: right;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
-            padding-right: 20px;
         }
         #clock-time { font-size: 2.5vw; font-weight: bold; }
         #clock-date { font-size: 1vw; }
@@ -46,8 +50,8 @@
         /* --- Main Content (Middle Zone) --- */
         .view-container {
             position: fixed;
-            top: 110px;  
-            bottom: 80px; 
+            top: 110px;  /* Matches header height */
+            bottom: 80px; /* Matches ticker area */
             left: 0;
             width: 100%;
             display: none;
