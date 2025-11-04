@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IESV Digital Signage</title>
     <style>
-        /* All styles are unchanged */
+        /* All styles are unchanged and correct */
         html, body {
             margin: 0; padding: 0; height: 100%; width: 100%;
             overflow: hidden; font-family: Arial, Helvetica, sans-serif;
@@ -69,12 +69,13 @@
     </div>
 
 
-    <script typetext/javascript">
+    <script type="text/javascript">
         // ---------------------------------
         // --- CONFIGURATION ---
         // ---------------------------------
-        const API_KEY = 'AIzaSyBC6IsECB620ykggdNvRJzD7BivHEmvToA'; // ❗ PASTE YOUR API KEY HERE
+        const API_KEY = ''; // ❗ PASTE YOUR API KEY HERE
 
+        // --- This config includes the fix you shared ---
         const SIGNAGE_CONFIGS = {
             'junior': {
                 calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
@@ -82,7 +83,7 @@
                 tickerFile: 'ticker-junior.txt',
                 defaultRotation: [
                     { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior1', duration: 15000 }
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior', duration: 15000 }
                 ]
             },
             'senior': {
@@ -90,11 +91,8 @@
                 presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8', // This is for 'show=slide'
                 tickerFile: 'ticker-senior.txt',
                 defaultRotation: [
-                    // --- ⬇️ PASTE YOUR 'pubembed' LINK HERE ⬇️ ---
-                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior2', duration: 15000 }
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior1', duration: 15000 }
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 }
+                    { url: 'https'docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior', duration: 15000 }
                 ]
             }
         };
@@ -108,7 +106,7 @@
         // --- END CONFIGURATION ---
         // ---------------------------------
 
-        // All JavaScript below this line is correct and unchanged
+        // All JavaScript below this line is correct
 
         const defaultView = document.getElementById('default-view');
         const eventView = document.getElementById('event-view');
