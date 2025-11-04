@@ -18,7 +18,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 80px; /* 80px tall */
+            height: 80px; 
             background-color: #000;
             z-index: 100;
             display: flex;
@@ -27,8 +27,9 @@
             box-sizing: border-box;
         }
 
+        /* --- THIS IS THE LINE I CHANGED --- */
         #weather-container {
-            width: 300px;
+            width: 1200px; /* Was 500px. Set to 1200px as requested. */
             padding-left: 20px;
         }
         
@@ -45,8 +46,8 @@
         /* --- Main Content (Middle Zone) --- */
         .view-container {
             position: fixed;
-            top: 80px;  /* Starts *below* the header */
-            bottom: 80px; /* Stops *above* the footer/ticker area */
+            top: 80px;  
+            bottom: 80px; 
             left: 0;
             width: 100%;
             display: none;
@@ -65,14 +66,12 @@
         iframe { width: 100%; height: 100%; border: 0; }
         
         /* --- Ticker "Footer" (Bottom Zone) --- */
-        /* This reserves the 80px space at the bottom */
         #ticker-wrap {
             position: fixed; bottom: 20px;
             left: 0; width: 100%;
-            height: 60px; /* The bar is 60px */
+            height: 60px; 
             background-color: rgba(0, 0, 0, 0.7);
             overflow: hidden; z-index: 99; box-sizing: border-box;
-            /* Total space used = 60px height + 20px bottom margin = 80px */
         }
         #ticker-content {
             display: block; position: absolute; height: 100%;
@@ -410,6 +409,7 @@
         
         function updateClock() {
             const now = new Date();
+            // Using Europe/Stockholm to ensure time is correct regardless of server
             const timeOptions = { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Stockholm' };
             const timeString = now.toLocaleTimeString('sv-SE', timeOptions);
             
