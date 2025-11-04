@@ -11,6 +11,16 @@
             overflow: hidden; font-family: Arial, Helvetica, sans-serif;
             background-color: #000; color: #fff;
         }
+
+        /* --- Style for the weather container --- */
+        #weather-container {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 100;
+            width: 300px; /* Adjust width as needed */
+        }
+        
         #clock-container {
             position: fixed; top: 15px; right: 15px; z-index: 100;
             color: #fff; text-align: right; text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
@@ -52,6 +62,12 @@
 </head>
 <body>
 
+    <div id="weather-container">
+        <a class="weatherwidget-io" href="https://forecast7.com/en/59d6116d54/vasteras/" data-label_1="VÄSTERÅS" data-label_2="WEATHER" data-theme="pure" >VÄSTERÅS WEATHER</a>
+        <script>
+        !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
+        </script>
+    </div>
     <div id="clock-container">
         <div id="clock-time"></div>
         <div id="clock-date"></div>
@@ -73,8 +89,9 @@
         // ---------------------------------
         // --- CONFIGURATION ---
         // ---------------------------------
-        const API_KEY = 'AIzaSyBC6IsECB620ykggdNvRJzD7BivHEmvToA'; // ❗ PASTE YOUR API KEY HERE
+        const API_KEY = ''; // ❗ PASTE YOUR API KEY HERE
 
+        // This is your last known-good config
         const SIGNAGE_CONFIGS = {
             'junior': {
                 calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
@@ -82,7 +99,7 @@
                 tickerFile: 'ticker-junior.txt',
                 defaultRotation: [
                     { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior1', duration: 15000 }
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior', duration: 15000 }
                 ]
             },
             'senior': {
@@ -90,12 +107,8 @@
                 presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8', // This is for 'show=slide'
                 tickerFile: 'ticker-senior.txt',
                 defaultRotation: [
-                    // --- THIS LINE IS NOW FIXED (https://...) ---
                     { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior2', duration: 15000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior1', duration: 15000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 }
-                    
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior', duration: 15000 }
                 ]
             }
         };
@@ -295,7 +308,7 @@
             eventTime.innerText = formatEventTime(event.start, event.end);
             
             defaultView.style.display = 'none';
-            eventView.style.display = 'block';
+            eventView.style.display =. 'block';
         }
 
         function formatEventTime(start, end) {
