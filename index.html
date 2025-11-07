@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IESV Digital Signage</title>
     <style>
-        /* --- STYLES --- */
+        /* --- STYLES (Unchanged) --- */
         html, body {
             margin: 0; padding: 0; height: 100%; width: 100%;
             overflow: hidden; font-family: Arial, Helvetica, sans-serif;
             background-color: #000; color: #fff;
         }
 
-        /* --- Header Bar (Top Zone) --- */
         #header-bar {
             position: fixed;
             top: 0;
@@ -22,13 +21,13 @@
             background-color: #000;
             z-index: 100;
             display: flex;
-            justify-content: center; /* Center by default on big screens */
+            justify-content: center;
             align-items: center;
             box-sizing: border-box;
         }
 
         #weather-container {
-            width: 1200px; /* Max width for big screens */
+            width: 1200px;
         }
         
         #clock-container {
@@ -38,13 +37,12 @@
             transform: translateY(-50%); 
             text-align: right;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
-            z-index: 101; /* Ensure clock is on top */
+            z-index: 101; 
         }
         #clock-time { font-size: 2.5vw; font-weight: bold; }
         #clock-date { font-size: 1vw; }
         .clock-day-month { font-size: 0.8vw; color: #ccc; }
 
-        /* --- Main Content (Middle Zone) --- */
         .view-container {
             position: fixed;
             top: 110px;  
@@ -66,7 +64,6 @@
         
         iframe { width: 100%; height: 100%; border: 0; }
         
-        /* --- Ticker "Footer" (Bottom Zone) --- */
         #ticker-wrap {
             position: fixed; bottom: 20px;
             left: 0; width: 100%;
@@ -88,39 +85,33 @@
             100% { transform: translateX(-100%); }
         }
         
-        /* * --- NEW RESPONSIVE FIX --- 
-         * This CSS only applies to screens SMALLER than 1400px
-        */
         @media (max-width: 1400px) {
             #header-bar {
-                justify-content: space-between; /* Change from 'center' */
+                justify-content: space-between; 
             }
             #weather-container {
-                width: 500px; /* Use a smaller, safer width */
+                width: 500px; 
                 padding-left: 20px;
             }
             #clock-container {
-                position: relative; /* No longer absolute */
+                position: relative; 
                 right: auto;
                 top: auto;
-                transform: none; /* Reset transform */
+                transform: none; 
                 padding-right: 20px;
             }
         }
-
     </style>
 </head>
 <body>
 
     <div id="header-bar">
-        
         <div id="weather-container">
             <a class="weatherwidget-io" href="https://forecast7.com/en/59d6116d54/vasteras/" data-label_1="VÄSTERÅS" data-label_2="WEATHER" data-theme="dark" >VÄSTERÅS WEATHER</a>
             <script>
             !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
             </script>
         </div>
-
         <div id="clock-container">
             <div id="clock-time"></div>
             <div id="clock-date"></div>
@@ -204,6 +195,10 @@
         // --- SECTION 3: INITIALIZATION ---
         // ---------------------------------
 
+        /**
+         * Main function, called by Google API script tag on load.
+         * This is the entry point for the entire application.
+         */
         function start() {
             console.log("Signage app starting...");
 
@@ -222,7 +217,10 @@
             updateClock();
             setInterval(updateClock, 1000);
 
-            // 3. Get sign configuration from URL (?sign=...)
+            // 3. NEW: Start the Wake Lock "jiggle"
+            initWakeLock();
+
+            // 4. Get sign configuration from URL (?sign=...)
             const urlParams = new URLSearchParams(window.location.search);
             const signId = urlParams.get('sign');
 
@@ -230,11 +228,11 @@
                 app.state.currentSettings = SIGNAGE_CONFIGS[signId];
                 console.log(`Loading configuration for: ${signId}`);
 
-                // 4. Load initial data
+                // 5. Load initial data
                 loadTickerFile();
                 setInterval(loadTickerFile, TICKER_REFRESH_INTERVAL);
 
-                // 5. Initialize Google API client
+                // 6. Initialize Google API client
                 gapi.load('client', initClient);
             } else {
                 // If no valid ?sign=... is found, show a fatal error
@@ -245,6 +243,9 @@
             }
         }
 
+        /**
+         * Initializes the Google API client (GAPI)
+         */
         function initClient() {
             gapi.client.init({
                 'apiKey': API_KEY,
@@ -252,13 +253,51 @@
             }).then(() => {
                 console.log('Google API client initialized.');
                 
-                // 6. Start the main calendar check loop
+                // 7. Start the main calendar check loop
                 checkCalendar();
                 setInterval(checkCalendar, REFRESH_INTERVAL);
             }, (error) => {
                 console.error('Error initializing Google client:', error);
                 showDefaultView();
             });
+        }
+        
+        /**
+         * NEW: Initializes a "Screen Wake Lock" to fight the OS idle timer.
+         * It will re-request the lock every 4 minutes as a "jiggle"
+         * to ensure it stays active against the "ghost" policy.
+         */
+        function initWakeLock() {
+            let wakeLock = null;
+
+            const requestLock = async () => {
+                // Only try to request if the API exists
+                if ('wakeLock' in navigator) {
+                    try {
+                        // Note: A new request automatically releases any previous lock.
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        console.log('Screen Wake Lock is active!');
+                        
+                        // Set up a listener *once* to log when it's released
+                        wakeLock.addEventListener('release', () => {
+                            console.log('Screen Wake Lock was released.');
+                            wakeLock = null;
+                        });
+
+                    } catch (err) {
+                        console.error('Wake Lock request failed:', err.message);
+                    }
+                } else {
+                    console.warn('Wake Lock API is not supported.');
+                }
+            };
+
+            // 1. Request the lock immediately
+            requestLock();
+            
+            // 2. Then, re-request it every 4 minutes to "jiggle" the system
+            //    and fight the ghost policy. (4 * 60 * 1000 = 240000)
+            setInterval(requestLock, 240000); // <-- THIS LINE IS CHANGED
         }
 
         // ---------------------------------
