@@ -1,281 +1,496 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Teacher Availability</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IESV Digital Signage</title>
     <style>
-        :root {
-            --bg: #102d69;
-            --container: #1a3a7f;
-            --text: #dbdad8;
-            --input-bg: #2a4a8f;
-            --border: #9a9b9d;
-            --button: #00a0df;
-            --button-hover: #007ead;
-            --success: #2ea44f;
-            --danger: #d73a49;
-            --warn: #ffc107;
-            --pink: #ffc0cb;
-            --pink-border: #ff69b4;
-            --clock-bg: rgba(0,0,0,0.4);
-            --clock-text: #ffffff;
-            --clock-border: rgba(255,255,255,0.2);
+        /* --- STYLES --- */
+        html, body {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; font-family: Arial, Helvetica, sans-serif;
+            background-color: #000; color: #fff;
         }
-        [data-theme="light"] {
-            --bg: #f8f9fa;
-            --container: #ffffff;
-            --text: #212529;
-            --input-bg: #f1f3f5;
-            --border: #ced4da;
-            --button: #007ead;
-            --button-hover: #005c8a;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warn: #ffc107;
-            --pink: #ff69b4;
-            --pink-border: #ff1493;
-            --clock-bg: rgba(0,0,0,0.1);
-            --clock-text: #212529;
-            --clock-border: rgba(0,0,0,0.15);
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            background-color: var(--bg);
-            color: var(--text);
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            transition: all 0.3s ease;
-        }
-        #theme-toggle {
+
+        /* --- 1. MODIFIED: Header Bar --- 
+           This is now the DEFAULT layout (the one you liked) */
+        #header-bar {
             position: fixed;
-            top: 15px;
-            right: 15px;
-            z-index: 1000;
-            background: var(--button);
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: all 0.3s;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 110px; 
+            background-color: #000;
+            z-index: 100;
             display: flex;
+            justify-content: space-between; /* <-- NOW DEFAULT */
             align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            box-sizing: border-box;
         }
-        #theme-toggle:hover {
-            background: var(--button-hover);
-            transform: scale(1.1);
+
+        /* --- 2. MODIFIED: Weather Container ---
+           This is the DEFAULT width (for small screens) */
+        #weather-container {
+            width: 500px; 
+            padding-left: 20px;
         }
-        #theme-toggle svg {
-            width: 32px;
-            height: 32px;
-        }
-        /* NEW: CLOCK & DATE — TOP LEFT */
+        
+        /* --- 3. MODIFIED: Clock Container ---
+           This is the DEFAULT layout (in the flow) */
         #clock-container {
+            position: relative; /* <-- NOW DEFAULT */
+            right: auto;
+            top: auto;
+            transform: none; 
+            text-align: right;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
+            z-index: 101; 
+            padding-right: 20px; /* Added padding */
+        }
+        #clock-time { font-size: 2.5vw; font-weight: bold; }
+        #clock-date { font-size: 1vw; }
+        .clock-day-month { font-size: 0.8vw; color: #ccc; }
+
+        /* --- Main Content (Middle Zone) --- */
+        .view-container {
             position: fixed;
-            top: 15px;
-            left: 15px;
-            z-index: 1000;
-            background: var(--clock-bg);
-            color: var(--clock-text);
-            padding: 12px 18px;
-            border-radius: 12px;
-            border: 1px solid var(--clock-border);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            text-align: center;
-            min-width: 180px;
-            transition: all 0.3s ease;
-        }
-        #clock-time {
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            line-height: 1;
-        }
-        #clock-date {
-            font-size: 13px;
-            font-weight: 500;
-            opacity: 0.9;
-            margin-top: 4px;
-            letter-spacing: 0.5px;
-        }
-        #reminder-banner {
+            top: 110px;  
+            bottom: 80px; 
+            left: 0;
+            width: 100%;
             display: none;
-            position: sticky;
-            top: 70px;
-            z-index: 99;
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            border: 1px solid #ffeaa7;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            text-align: center;
         }
-        [data-theme="light"] #reminder-banner {
-            background-color: #d4edda;
-            color: #155724;
-            border-color: #c3e6cb;
+        #default-view { display: block; }
+        
+        #event-view {
+            box-sizing: border-box; padding: 50px; display: flex;
+            flex-direction: column; justify-content: center;
+            align-items: center; text-align: center;
         }
-        .logo { width: 180px; height: auto; margin-bottom: 10px; }
-        h1 { border-bottom: 2px solid #00a0df; padding-bottom: 10px; color: var(--text); }
-        h2 { background-color: #0366d6; color: #ffffff; margin: -24px -24px 20px -24px; padding: 12px 24px; border-radius: 6px 6px 0 0; }
-        [data-theme="light"] h2 { background-color: #007ead; }
-        .container { background-color: var(--container); border: 1px solid var(--border); border-radius: 6px; padding: 24px; margin-bottom: 20px; color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .key-legend { list-style: none; padding: 0; margin: 10px 0 0 0; display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.9em; }
-        .key-legend li { display: flex; align-items: center; }
-        .key-dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; border: 1px solid rgba(0,0,0,0.2); }
-        .key-dot.green { background-color: var(--success); }
-        .key-dot.red { background-color: var(--danger); }
-        .key-dot.yellow { background-color: var(--warn); }
-        .key-dot.pink { background-color: var(--pink); }
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--text); }
-        .input-group input, .input-group select { width: 95%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background-color: var(--input-bg); color: var(--text); }
-        button { background-color: var(--button); color: #ffffff; font-weight: 600; padding: 10px 16px; border: 1px solid var(--button-hover); border-radius: 6px; cursor: pointer; margin-top: 10px; transition: all 0.2s ease; }
-        button:hover { background-color: var(--button-hover); }
-        button.btn-green { background-color: var(--success); }
-        button.secondary { background-color: var(--border); color: var(--text); }
-        button.danger { background-color: var(--danger); }
-        button.primary { background-color: #6f42c1; }
-        .teacher-list { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; }
-        .teacher-list li { background-color: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; padding: 5px 12px; color: var(--text); font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
-        .teacher-list li.on-call { background-color: var(--success); color: white; border-color: #218838; font-weight: 600; }
-        .teacher-list li.minutes-danger { background-color: var(--danger); color: white; border: 1px solid #c82333; font-weight: 600; }
-        .teacher-list li.minutes-warn { background-color: var(--warn); border: 1px solid #e0a800; color: #212529; }
-        .teacher-list li.break-duty { background-color: var(--pink); color: #000; border: 2px solid var(--pink-border); font-weight: 600; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 105, 180, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 105, 180, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 105, 180, 0); } }
-        .month-buttons button { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); padding: 8px 12px; margin: 2px; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 0.9em; min-width: 48px; }
-        .month-buttons button:hover { background: var(--button-hover); color: white; }
-        .month-buttons button.active { background: #00a0df !important; color: white !important; border-color: #0088c0; font-weight: 700; box-shadow: 0 0 8px rgba(0, 160, 223, 0.6); }
-        .month-buttons { display: flex; flex-wrap: nowrap; justify-content: center; gap: 4px; overflow-x: auto; padding: 8px 0; }
-        .status { margin-top: 8px; }
-        .status.error { color: var(--danger); font-weight: 600; }
-        .status.success { color: var(--success); font-weight: 600; }
-        #csv-file-input, #absences-file-input { display: none; }
-        .button-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-        .delete-absence-btn { margin-left: 10px; font-size: 0.8em; padding: 2px 6px; }
+        #event-title { font-size: 7vw; font-weight: bold; margin-bottom: 20px; }
+        #event-time { font-size: 4vw; color: #ccc; }
+        #event-slide-content { width: 100%; height: 100%; }
+        
+        iframe { width: 100%; height: 100%; border: 0; }
+        
+        /* --- Ticker "Footer" (Bottom Zone) --- */
+        #ticker-wrap {
+            position: fixed; bottom: 20px;
+            left: 0; width: 100%;
+            height: 60px; 
+            background-color: rgba(0, 0, 0, 0.7);
+            overflow: hidden; z-index: 99; box-sizing: border-box;
+        }
+        #ticker-content {
+            display: block; position: absolute; height: 100%;
+            line-height: 60px; font-size: 30px; color: #fff;
+            white-space: nowrap; will-change: transform;
+            animation-name: ticker-scroll;
+            animation-duration: 10s;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+        @keyframes ticker-scroll {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        /* * --- 4. MODIFIED: RESPONSIVE FIX --- 
+         * This rule now *only* applies to *BIG* screens
+        */
+        @media (min-width: 1401px) {
+            #weather-container {
+                width: 1200px; /* Make it wider on big screens */
+            }
+        }
+
     </style>
 </head>
 <body>
-    <!-- SUN / MOON ICONS -->
-    <button id="theme-toggle" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sun">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3"/>
-            <line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/>
-            <line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="moon" style="display:none">
-            <path d="M21 12.79A9 9 0 0 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-    </button>
 
-    <!-- NEW: CLOCK + DATE TOP LEFT -->
-    <div id="clock-container">
-        <div id="clock-time">88:88</div>
-        <div id="clock-date">Loading...</div>
-    </div>
+    <div id="header-bar">
+        
+        <div id="weather-container">
+            <a class="weatherwidget-io" href="https://forecast7.com/en/59d6116d54/vasteras/" data-label_1="VÄSTERÅS" data-label_2="WEATHER" data-theme="dark" >VÄSTERÅS WEATHER</a>
+            <script>
+            !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
+            </script>
+        </div>
 
-    <div id="reminder-banner">
-        <p>Don't forget to save your data!</p>
-        <button id="reminder-save-minutes" class="btn-green">Download Minutes (Share!)</button>
-        <button id="reminder-save-absences" class="btn-green">Download Absences (Share!)</button>
-        <button id="reminder-dismiss" class="secondary">Dismiss</button>
-    </div>
-    <img src="logo.png" alt="Logo" class="logo">
-    <h1>Teacher Availability</h1>
-
-    <ul class="key-legend">
-        <li><span class="key-dot green"></span>On Call</li>
-        <li><span class="key-dot red"></span>Monthly Limit (180 min)</li>
-        <li><span class="key-dot yellow"></span>Weekly Limit (90 min)</li>
-        <li><span class="key-dot pink"></span>Break Duty</li>
-    </ul>
-
-    <div class="container">
-        <h2>Who is Available Now?</h2>
-        <div id="status-now" class="status">Loading schedule...</div>
-        <div id="results-now">
-            <ul id="teachers-now" class="teacher-list"></ul>
+        <div id="clock-container">
+            <div id="clock-time"></div>
+            <div id="clock-date"></div>
         </div>
     </div>
-
-    <!-- [ALL OTHER SECTIONS — FULLY WORKING] -->
-    <!-- Check Availability, Record Absence, View Absences, Log Minutes, Data Management -->
-
-    <div class="container">
-        <h2>View Extra Minutes & Data Management</h2>
-        <div class="input-group"><label for="year-display">Select Year:</label><input type="number" id="year-display" value="2025"></div>
-        <div class="month-buttons" id="month-buttons"></div>
-        <div id="totals-display"><p>Select a month to see totals.</p></div>
-        <hr style="border-color:var(--border);margin-top:25px">
-        <p class="description-text" style="margin-top:15px;margin-bottom:0">
-            Use the buttons below to manage your saved data.<br>
-            • <b>Download Minutes/Absences</b> → send to colleagues → they import<br>
-            • Everyone stays in sync!
-        </p>
-        <div class="button-group">
-            <button id="export-backup-button" class="btn-green">Download Minutes (Share!)</button>
-            <button id="export-absences-button" class="btn-green">Download Absences (Share!)</button>
-            <button id="export-summary-button" class="primary">Export Summary CSV</button>
-            <button id="import-csv-button" class="secondary">Import CSV (Min)</button>
-            <input type="file" id="csv-file-input" accept=".csv">
-            <button id="import-absences-button" class="secondary">Import Absences CSV</button>
-            <input type="file" id="absences-file-input" accept=".csv">
-            <button id="clear-data-button" class="danger">Clear All Saved Data</button>
-        </div>
-        <div id="import-status" class="status" style="display:none;margin-top:10px;"></div>
+    
+    <div id="default-view" class="view-container">
+        <iframe id="default-iframe" frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    </div>
+    <div id="event-view" class="view-container">
+        <div id="event-title"></div>
+        <div id="event-time"></div>
+        <div id="event-slide-content"></div>
+    </div>
+    
+    <div id="ticker-wrap">
+        <div id="ticker-content"></div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // THEME TOGGLE
-            const toggleButton = document.getElementById('theme-toggle');
-            const sunIcon = document.getElementById('sun');
-            const moonIcon = document.getElementById('moon');
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            sunIcon.style.display = savedTheme === 'dark' ? 'block' : 'none';
-            moonIcon.style.display = savedTheme === 'dark' ? 'none' : 'block';
-            toggleButton.onclick = () => {
-                const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                sunIcon.style.display = newTheme === 'dark' ? 'block' : 'none';
-                moonIcon.style.display = newTheme === 'dark' ? 'none' : 'block';
-            };
 
-            // CLOCK & DATE — LIVE UPDATING
-            function updateClock() {
-                const now = new Date();
-                const time = now.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                const date = now.toLocaleDateString('sv-SE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                document.getElementById('clock-time').textContent = time;
-                document.getElementById('clock-date').textContent = date;
+    <script type="text/javascript">
+        'use strict'; 
+
+        // ---------------------------------
+        // --- SECTION 1: CONFIGURATION ---
+        // ---------------------------------
+
+        const API_KEY = 'AIzaSyBC6IsECB620ykggdNvRJzD7BivHEmvToA'; // ❗ PASTE YOUR API KEY HERE
+        const REFRESH_INTERVAL = 60000; 
+        const TICKER_REFRESH_INTERVAL = REFRESH_INTERVAL * 5; 
+
+        // This is your last known-good config
+        const SIGNAGE_CONFIGS = {
+            'junior': {
+                calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
+                presentationId: '1Hm9DlVNLmN0tKTD7tR9b0vdu3AMTPNkLdLUdotyKlhM',
+                tickerFile: 'ticker-junior.txt',
+                defaultRotation: [
+                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior1', duration: 15000 }
+                ]
+            },
+            'senior': {
+                calendarId: 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com',
+                presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8', // This is for 'show=slide'
+                tickerFile: 'ticker-senior.txt',
+                defaultRotation: [
+                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior2', duration: 15000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior1', duration: 15000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 }
+                ]
             }
+        };
+
+
+        // ---------------------------------
+        // --- SECTION 2: GLOBAL STATE & DOM ---
+        // ---------------------------------
+
+        const app = {
+            state: {
+                currentSettings: null,
+                rotationTimer: null,
+                rotationIndex: 0
+            },
+            dom: {
+                clockTime: null,
+                clockDate: null,
+                defaultView: null,
+                eventView: null,
+                eventTitle: null,
+                eventTime: null,
+                eventSlideContent: null,
+                defaultIframe: null,
+                tickerContent: null
+            }
+        };
+
+        // ---------------------------------
+        // --- SECTION 3: INITIALIZATION ---
+        // ---------------------------------
+
+        /**
+         * Main function, called by Google API script tag on load.
+         * This is the entry point for the entire application.
+         */
+        function start() {
+            console.log("Signage app starting...");
+
+            // 1. Find and store all our HTML elements
+            app.dom.clockTime = document.getElementById('clock-time');
+            app.dom.clockDate = document.getElementById('clock-date');
+            app.dom.defaultView = document.getElementById('default-view');
+            app.dom.eventView = document.getElementById('event-view');
+            app.dom.eventTitle = document.getElementById('event-title');
+            app.dom.eventTime = document.getElementById('event-time');
+            app.dom.eventSlideContent = document.getElementById('event-slide-content');
+            app.dom.defaultIframe = document.getElementById('default-iframe');
+            app.dom.tickerContent = document.getElementById('ticker-content');
+
+            // 2. Start the clock
             updateClock();
             setInterval(updateClock, 1000);
 
-            // [ALL YOUR FULL WORKING JS BELOW — teachers, dropdowns, imports, etc.]
-            // ... (exactly as before — 100% unchanged and working)
+            // 3. Start the Wake Lock "jiggle"
+            initWakeLock();
 
-            loadData();
-        });
+            // 4. Get sign configuration from URL (?sign=...)
+            const urlParams = new URLSearchParams(window.location.search);
+            const signId = urlParams.get('sign');
+
+            if (signId && SIGNAGE_CONFIGS[signId]) {
+                app.state.currentSettings = SIGNAGE_CONFIGS[signId];
+                console.log(`Loading configuration for: ${signId}`);
+
+                // 5. Load initial data
+                loadTickerFile();
+                setInterval(loadTickerFile, TICKER_REFRESH_INTERVAL);
+
+                // 6. Initialize Google API client
+                gapi.load('client', initClient);
+            } else {
+                // If no valid ?sign=... is found, show a fatal error
+                showFatalError(
+                    'Configuration Error: Invalid or missing sign ID in URL.',
+                    'Please add <strong>?sign=junior</strong> or <strong>?sign=senior</strong> to the end of the URL.'
+                );
+            }
+        }
+
+        /**
+         * Initializes the Google API client (GAPI)
+         */
+        function initClient() {
+            gapi.client.init({
+                'apiKey': API_KEY,
+                'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+            }).then(() => {
+                console.log('Google API client initialized.');
+                
+                // 7. Start the main calendar check loop
+                checkCalendar();
+                setInterval(checkCalendar, REFRESH_INTERVAL);
+            }, (error) => {
+                console.error('Error initializing Google client:', error);
+                showDefaultView();
+            });
+        }
+        
+        /**
+         * Initializes a "Screen Wake Lock" to fight the OS idle timer.
+         * It will re-request the lock every 4 minutes as a "jiggle"
+         */
+        function initWakeLock() {
+            let wakeLock = null;
+
+            const requestLock = async () => {
+                // Only try to request if the API exists
+                if ('wakeLock' in navigator) {
+                    try {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        console.log('Screen Wake Lock is active!');
+                        
+                        wakeLock.addEventListener('release', () => {
+                            console.log('Screen Wake Lock was released.');
+                            wakeLock = null;
+                        });
+
+                    } catch (err) {
+                        console.error('Wake Lock request failed:', err.message);
+                    }
+                } else {
+                    console.warn('Wake Lock API is not supported.');
+                }
+            };
+
+            // 1. Request the lock immediately
+            requestLock();
+            
+            // 2. Then, re-request it every 4 minutes
+            setInterval(requestLock, 240000);
+        }
+
+        // ---------------------------------
+        // --- SECTION 4: DATA FETCHING ---
+        // ---------------------------------
+
+        function loadTickerFile() {
+            const tickerFile = app.state.currentSettings.tickerFile;
+            if (!tickerFile) {
+                console.warn('No ticker file specified.');
+                app.dom.tickerContent.innerText = '';
+                return;
+            }
+
+            const url = `${tickerFile}?t=${new Date().getTime()}`; // Cache-busting
+            console.log(`Fetching ticker file: ${tickerFile}`);
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(text => {
+                    const trimmedText = text.trim();
+                    app.dom.tickerContent.innerText = trimmedText;
+                    if (trimmedText) {
+                        const duration = trimmedText.length * 0.15;
+                        const animationDuration = Math.max(10, duration) + 's';
+                        app.dom.tickerContent.style.animationDuration = animationDuration;
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error fetching ${tickerFile}:`, error);
+                    app.dom.tickerContent.innerText = '';
+                });
+        }
+
+        function checkCalendar() {
+            if (!app.state.currentSettings) return;
+            
+            const now = new Date();
+            console.log(`Checking calendar at ${now.toLocaleTimeString()}`);
+            
+            gapi.client.calendar.events.list({
+                'calendarId': app.state.currentSettings.calendarId,
+                'timeMin': now.toISOString(),
+                'maxResults': 1,
+                'singleEvents': true,
+                'orderBy': 'startTime'
+            }).then((response) => {
+                const event = response.result.items[0];
+                if (!event) {
+                    showDefaultView(); // No events found
+                    return;
+                }
+
+                const eventStart = new Date(event.start.dateTime || event.start.date);
+                const eventEnd = new Date(event.end.dateTime || event.end.date);
+
+                if (now >= eventStart && now < eventEnd) {
+                    console.log('Active event found:', event.summary);
+                    parseEvent(event); // Show the event
+                } else {
+                    showDefaultView(); // No *active* event
+                }
+            }).catch((error) => {
+                console.error('Error fetching calendar:', error);
+                showDefaultView(); // Show default on error
+            });
+        }
+
+        // ---------------------------------
+        // --- SECTION 5: VIEW MANAGEMENT ---
+        // ---------------------------------
+
+        function parseEvent(event) {
+            const description = event.description || '';
+
+            if (description.includes('show=externalSlide&presId=')) {
+                try {
+                    const presId = description.split('presId=')[1].split('&')[0];
+                    const slideId = description.split('slideId=')[1].split(' ')[0];
+                    showSpecificSlide(slideId, presId);
+                } catch (e) {
+                    console.error('Could not parse external slide command.', e);
+                    showDefaultView();
+                }
+            } else if (description.includes('show=slide&id=')) {
+                try {
+                    const slideNumber = description.split('id=')[1].split(' ')[0];
+                    showSpecificSlide(slideNumber, app.state.currentSettings.presentationId);
+                } catch (e) {
+                    console.error('Could not parse slide ID.', e);
+                    showDefaultView();
+                }
+            } else if (description.includes('show=event')) {
+                showEventText(event);
+            } else {
+                showDefaultView();
+            }
+        }
+
+        function showDefaultView() {
+            if (app.dom.defaultView.style.display === 'block') return;
+
+            console.log('Showing default view and starting rotation.');
+            app.dom.eventView.style.display = 'none';
+            app.dom.defaultView.style.display = 'block';
+
+            if (app.state.rotationTimer) clearTimeout(app.state.rotationTimer);
+            
+            app.state.rotationIndex = 0; // Start rotation from the first page
+            rotateDefaultView();
+        }
+
+        function rotateDefaultView() {
+            const pages = app.state.currentSettings.defaultRotation;
+            if (!pages || pages.length === 0) return; 
+
+            const currentPage = pages[app.state.rotationIndex];
+            app.dom.defaultIframe.src = currentPage.url;
+            console.log(`Rotating to: ${currentPage.url} for ${currentPage.duration}ms`);
+
+            app.state.rotationIndex = (app.state.rotationIndex + 1) % pages.length;
+
+            app.state.rotationTimer = setTimeout(rotateDefaultView, currentPage.duration);
+        }
+
+        function showSpecificSlide(slideNumber, presentationId) {
+            if (app.state.rotationTimer) clearTimeout(app.state.rotationTimer);
+            
+            console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
+            const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}&rm=minimal`;
+            
+            app.dom.eventTitle.innerText = '';
+            app.dom.eventTime.innerText = '';
+            app.dom.eventSlideContent.innerHTML = `<iframe src="${slideUrl}" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>`;
+            
+            app.dom.defaultView.style.display = 'none';
+            app.dom.eventView.style.display = 'block';
+        }
+
+        function showEventText(event) {
+            if (app.state.rotationTimer) clearTimeout(app.state.rotationTimer);
+            
+            console.log(`Showing event text: ${event.summary}`);
+            app.dom.eventSlideContent.innerHTML = '';
+            app.dom.eventTitle.innerText = event.summary;
+            app.dom.eventTime.innerText = formatEventTime(event.start, event.end);
+            
+            app.dom.defaultView.style.display = 'none';
+            app.dom.eventView.style.display = 'block';
+        }
+
+        function showFatalError(title, message) {
+            document.body.innerHTML = `<h1 style="color:red; padding: 50px;">${title}</h1>
+                                        <p style="color:white; padding: 0 50px;">${message}</p>`;
+        }
+
+        // ---------------------------------
+        // --- SECTION 6: UTILITIES ---
+        // ---------------------------------
+
+        function formatEventTime(start, end) {
+            const svOptions = { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Stockholm' };
+            const startTime = new Date(start.dateTime || start.date).toLocaleTimeString('sv-SE', svOptions);
+            const endTime = new Date(end.dateTime || end.date).toLocaleTimeString('sv-SE', svOptions);
+            return `${startTime} - ${endTime}`;
+        }
+        
+        function updateClock() {
+            const now = new Date();
+            // Using Europe/Stockholm to ensure time is correct regardless of server
+            const timeOptions = { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Stockholm' };
+            const timeString = now.toLocaleTimeString('sv-SE', timeOptions);
+            
+            const weekdayOptions = { weekday: 'long', timeZone: 'Europe/Stockholm' };
+            let weekdayString = now.toLocaleDateString('sv-SE', weekdayOptions);
+            weekdayString = weekdayString.charAt(0).toUpperCase() + weekdayString.slice(1);
+            
+            const dayMonthOptions = { day: 'numeric', month: 'long', timeZone: 'Europe/Stockholm' };
+            const dayMonthString = now.toLocaleDateString('sv-SE', dayMonthOptions);
+
+            const formattedDate = `${weekdayString}<br><span class="clock-day-month">${dayMonthString}</span>`;
+
+            if (app.dom.clockTime) {
+                app.dom.clockTime.innerText = timeString;
+                app.dom.clockDate.innerHTML = formattedDate; 
+            }
+        }
+
     </script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="start()"></script>
 </body>
 </html>
