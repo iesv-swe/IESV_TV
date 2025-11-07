@@ -12,7 +12,7 @@
             background-color: #000; color: #fff;
         }
 
-        /* --- 1. MODIFIED: Header Bar --- */
+        /* --- 1. Header Bar --- */
         #header-bar {
             position: fixed;
             top: 0;
@@ -22,23 +22,23 @@
             background-color: #000;
             z-index: 100;
             display: flex;
-            justify-content: space-between; /* This is the layout we want */
+            justify-content: space-between; 
             align-items: center;
             box-sizing: border-box;
-            padding: 0 20px; /* Padding on the bar itself */
+            padding: 0 20px; 
         }
 
-        /* --- 2. MODIFIED: Weather Container --- */
+        /* --- 2. Weather Container --- */
         #weather-container {
-            flex: 1; /* <-- This is the magic! It tells it to GROW */
-            min-width: 0; /* Allows it to shrink if needed */
-            padding-right: 20px; /* Adds space between weather and clock */
+            flex: 1; /* This makes it stretch */
+            min-width: 0; 
+            padding-right: 20px; 
         }
         
-        /* --- 3. MODIFIED: Clock Container --- */
+        /* --- 3. Clock Container --- */
         #clock-container {
-            position: relative; /* Kept in the layout flow */
-            flex-shrink: 0; /* Tells it NOT to be squashed */
+            position: relative; 
+            flex-shrink: 0; /* Stops it from being squashed */
             text-align: right;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
             z-index: 101; 
@@ -91,8 +91,6 @@
             100% { transform: translateX(-100%); }
         }
         
-        /* Media query is no longer needed! This layout works for all sizes. */
-
     </style>
 </head>
 <body>
@@ -126,26 +124,27 @@
     </div>
 
 
-    <script typetext/javascript">
+    <script type="text/javascript">
         'use strict'; 
 
         // ---------------------------------
         // --- SECTION 1: CONFIGURATION ---
         // ---------------------------------
 
-        const API_KEY = ''; // ❗ PASTE YOUR API KEY HERE
+        const API_KEY = 'AIzaSyBC6IsECB620ykggdNvRJzD7BivHEmvToA'; // ❗ PASTE YOUR API KEY HERE
         const REFRESH_INTERVAL = 60000; 
         const TICKER_REFRESH_INTERVAL = REFRESH_INTERVAL * 5; 
 
         // This is your last known-good config
+        // --- ALL https:// LINKS ARE NOW FIXED ---
         const SIGNAGE_CONFIGS = {
             'junior': {
                 calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
                 presentationId: '1Hm9DlVNLmN0tKTD7tR9b0vdu3AMTPNkLdLUdotyKlhM',
                 tickerFile: 'ticker-junior.txt',
                 defaultRotation: [
-                    { url: 'https:docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
-                    { url: 'https:iesv-swe.github.io/IESV-Now-and-Next/?view=junior1', duration: 15000 }
+                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior1', duration: 15000 }
                 ]
             },
             'senior': {
@@ -153,10 +152,10 @@
                 presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8', // This is for 'show=slide'
                 tickerFile: 'ticker-senior.txt',
                 defaultRotation: [
-                    { url: 'https:docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
-                    { url: 'https:iesv-swe.github.io/IESV-Now-and-Next/?view=junior2', duration: 15000 },
-                    { url: 'https:iesv-swe.github.io/IESV-Now-and-Next/?view=senior1', duration: 15000 },
-                    { url: 'https:iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 }
+                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior2', duration: 15000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior1', duration: 15000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 }
                 ]
             }
         };
@@ -189,10 +188,6 @@
         // --- SECTION 3: INITIALIZATION ---
         // ---------------------------------
 
-        /**
-         * Main function, called by Google API script tag on load.
-         * This is the entry point for the entire application.
-         */
         function start() {
             console.log("Signage app starting...");
 
@@ -237,13 +232,11 @@
             }
         }
 
-        /**
-         * Initializes the Google API client (GAPI)
-         */
         function initClient() {
+            // --- LINK FIXED: Added https:// ---
             gapi.client.init({
                 'apiKey': API_KEY,
-                'discoveryDocs': ['https:www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+                'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
             }).then(() => {
                 console.log('Google API client initialized.');
                 
@@ -256,15 +249,10 @@
             });
         }
         
-        /**
-         * Initializes a "Screen Wake Lock" to fight the OS idle timer.
-         * It will re-request the lock every 4 minutes as a "jiggle"
-         */
         function initWakeLock() {
             let wakeLock = null;
 
             const requestLock = async () => {
-                // Only try to request if the API exists
                 if ('wakeLock' in navigator) {
                     try {
                         wakeLock = await navigator.wakeLock.request('screen');
@@ -302,7 +290,7 @@
                 return;
             }
 
-            const url = `${tickerFile}?t=${new Date().getTime()}`; // Cache-busting
+            const url = `${tickerFile}?t=${new Date().getTime()}`; 
             console.log(`Fetching ticker file: ${tickerFile}`);
 
             fetch(url)
@@ -420,7 +408,8 @@
             if (app.state.rotationTimer) clearTimeout(app.state.rotationTimer);
             
             console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
-            const slideUrl = `https:docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}&rm=minimal`;
+            // --- LINK FIXED: Added https:// ---
+            const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}&rm=minimal`;
             
             app.dom.eventTitle.innerText = '';
             app.dom.eventTime.innerText = '';
@@ -480,6 +469,7 @@
         }
 
     </script>
-    <script async defer src="https:apis.google.com/js/api.js" onload="start()"></script>
+    
+    <script async defer src="https://apis.google.com/js/api.js" onload="start()"></script>
 </body>
 </html>
