@@ -30,9 +30,16 @@
 
         /* --- 2. Weather Container --- */
         #weather-container {
-            flex: 1; /* This makes it stretch */
+            flex: 1; /* This makes the container stretch */
             min-width: 0; 
             padding-right: 20px; 
+        }
+
+        /* --- THIS IS THE NEW FIX --- */
+        /* This forces the widget *inside* the container to stretch */
+        #weather-container .weatherwidget-io {
+            display: block !important;
+            width: 100% !important;
         }
         
         /* --- 3. Clock Container --- */
@@ -136,7 +143,6 @@
         const TICKER_REFRESH_INTERVAL = REFRESH_INTERVAL * 5; 
 
         // This is your last known-good config
-        // --- ALL https:// LINKS ARE NOW FIXED ---
         const SIGNAGE_CONFIGS = {
             'junior': {
                 calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
@@ -155,7 +161,7 @@
                     { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
                     { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior2', duration: 15000 },
                     { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior1', duration: 15000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 }
+                    { url: 'httpsa://iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 }
                 ]
             }
         };
@@ -233,7 +239,6 @@
         }
 
         function initClient() {
-            // --- LINK FIXED: Added https:// ---
             gapi.client.init({
                 'apiKey': API_KEY,
                 'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
@@ -395,7 +400,7 @@
             const pages = app.state.currentSettings.defaultRotation;
             if (!pages || pages.length === 0) return; 
 
-            const currentPage = pages[app.state.rotationIndex];
+            const currentPage = pages[app.state.rotation.index];
             app.dom.defaultIframe.src = currentPage.url;
             console.log(`Rotating to: ${currentPage.url} for ${currentPage.duration}ms`);
 
@@ -408,7 +413,6 @@
             if (app.state.rotationTimer) clearTimeout(app.state.rotationTimer);
             
             console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
-            // --- LINK FIXED: Added https:// ---
             const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}&rm=minimal`;
             
             app.dom.eventTitle.innerText = '';
@@ -469,7 +473,6 @@
         }
 
     </script>
-    
     <script async defer src="https://apis.google.com/js/api.js" onload="start()"></script>
 </body>
 </html>
