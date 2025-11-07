@@ -12,8 +12,7 @@
             background-color: #000; color: #fff;
         }
 
-        /* --- 1. MODIFIED: Header Bar --- 
-           This is now the DEFAULT layout (the one you liked) */
+        /* --- 1. MODIFIED: Header Bar --- */
         #header-bar {
             position: fixed;
             top: 0;
@@ -23,29 +22,26 @@
             background-color: #000;
             z-index: 100;
             display: flex;
-            justify-content: space-between; /* <-- NOW DEFAULT */
+            justify-content: space-between; /* This is the layout we want */
             align-items: center;
             box-sizing: border-box;
+            padding: 0 20px; /* Padding on the bar itself */
         }
 
-        /* --- 2. MODIFIED: Weather Container ---
-           This is the DEFAULT width (for small screens) */
+        /* --- 2. MODIFIED: Weather Container --- */
         #weather-container {
-            width: 500px; 
-            padding-left: 20px;
+            flex: 1; /* <-- This is the magic! It tells it to GROW */
+            min-width: 0; /* Allows it to shrink if needed */
+            padding-right: 20px; /* Adds space between weather and clock */
         }
         
-        /* --- 3. MODIFIED: Clock Container ---
-           This is the DEFAULT layout (in the flow) */
+        /* --- 3. MODIFIED: Clock Container --- */
         #clock-container {
-            position: relative; /* <-- NOW DEFAULT */
-            right: auto;
-            top: auto;
-            transform: none; 
+            position: relative; /* Kept in the layout flow */
+            flex-shrink: 0; /* Tells it NOT to be squashed */
             text-align: right;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
             z-index: 101; 
-            padding-right: 20px; /* Added padding */
         }
         #clock-time { font-size: 2.5vw; font-weight: bold; }
         #clock-date { font-size: 1vw; }
@@ -95,14 +91,7 @@
             100% { transform: translateX(-100%); }
         }
         
-        /* * --- 4. MODIFIED: RESPONSIVE FIX --- 
-         * This rule now *only* applies to *BIG* screens
-        */
-        @media (min-width: 1401px) {
-            #weather-container {
-                width: 1200px; /* Make it wider on big screens */
-            }
-        }
+        /* Media query is no longer needed! This layout works for all sizes. */
 
     </style>
 </head>
@@ -137,14 +126,14 @@
     </div>
 
 
-    <script type="text/javascript">
+    <script typetext/javascript">
         'use strict'; 
 
         // ---------------------------------
         // --- SECTION 1: CONFIGURATION ---
         // ---------------------------------
 
-        const API_KEY = 'AIzaSyBC6IsECB620ykggdNvRJzD7BivHEmvToA'; // ❗ PASTE YOUR API KEY HERE
+        const API_KEY = ''; // ❗ PASTE YOUR API KEY HERE
         const REFRESH_INTERVAL = 60000; 
         const TICKER_REFRESH_INTERVAL = REFRESH_INTERVAL * 5; 
 
@@ -155,8 +144,8 @@
                 presentationId: '1Hm9DlVNLmN0tKTD7tR9b0vdu3AMTPNkLdLUdotyKlhM',
                 tickerFile: 'ticker-junior.txt',
                 defaultRotation: [
-                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior1', duration: 15000 }
+                    { url: 'https:docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https:iesv-swe.github.io/IESV-Now-and-Next/?view=junior1', duration: 15000 }
                 ]
             },
             'senior': {
@@ -164,10 +153,10 @@
                 presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8', // This is for 'show=slide'
                 tickerFile: 'ticker-senior.txt',
                 defaultRotation: [
-                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior2', duration: 15000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior1', duration: 15000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 }
+                    { url: 'https:docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https:iesv-swe.github.io/IESV-Now-and-Next/?view=junior2', duration: 15000 },
+                    { url: 'https:iesv-swe.github.io/IESV-Now-and-Next/?view=senior1', duration: 15000 },
+                    { url: 'https:iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 }
                 ]
             }
         };
@@ -254,7 +243,7 @@
         function initClient() {
             gapi.client.init({
                 'apiKey': API_KEY,
-                'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+                'discoveryDocs': ['https:www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
             }).then(() => {
                 console.log('Google API client initialized.');
                 
@@ -431,7 +420,7 @@
             if (app.state.rotationTimer) clearTimeout(app.state.rotationTimer);
             
             console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
-            const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}&rm=minimal`;
+            const slideUrl = `https:docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}&rm=minimal`;
             
             app.dom.eventTitle.innerText = '';
             app.dom.eventTime.innerText = '';
@@ -491,6 +480,6 @@
         }
 
     </script>
-    <script async defer src="https://apis.google.com/js/api.js" onload="start()"></script>
+    <script async defer src="https:apis.google.com/js/api.js" onload="start()"></script>
 </body>
 </html>
