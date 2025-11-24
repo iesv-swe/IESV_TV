@@ -1,474 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IESV Digital Signage</title>
+    <title>School Video Wall - Individual Screens</title>
+    <!-- CSS STYLES ARE EMBEDDED HERE -->
     <style>
-        /* --- STYLES (Unchanged, Layout is Correct) --- */
-        html, body {
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            overflow: hidden; font-family: Arial, Helvetica, sans-serif;
-            background-color: #000; color: #fff;
-        }
-
-        #header-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 110px; 
-            background-color: #000;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between; 
-            align-items: center;
-            box-sizing: border-box;
-            padding: 0 20px; 
-        }
-
-        #weather-container {
-            flex: 1; 
-            min-width: 0; 
-            padding-right: 20px; 
-        }
-
-        #weather-container .weatherwidget-io {
-            display: block !important;
-            width: 100% !important;
-        }
+        /* Global Styles: Ensures full screen, black background, and no scrolling */
+        body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: black; }
+        .content-container { display: none; width: 100%; height: 100%; box-sizing: border-box; }
         
-        #clock-container {
-            position: relative; 
-            flex-shrink: 0; 
-            text-align: right;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
-            z-index: 101; 
+        /* Centering for Text/Error */
+        #text-wrapper, #error-wrapper {
+            color: white; font-family: sans-serif; padding: 40px; display: flex; 
+            flex-direction: column; justify-content: center; align-items: center; text-align: center;
         }
-        #clock-time { font-size: 2.5vw; font-weight: bold; }
-        #clock-date { font-size: 1vw; }
-        .clock-day-month { font-size: 0.8vw; color: #ccc; }
-
-        .view-container {
-            position: fixed;
-            top: 110px;  
-            bottom: 80px; 
-            left: 0;
-            width: 100%;
-            display: none;
-        }
-        #default-view { display: block; }
+        #error-wrapper { color: #ff6b6b; }
         
-        #event-view {
-            box-sizing: border-box; padding: 50px; display: flex;
-            flex-direction: column; justify-content: center;
-            align-items: center; text-align: center;
-        }
-        #event-title { font-size: 7vw; font-weight: bold; margin-bottom: 20px; }
-        #event-time { font-size: 4vw; color: #ccc; }
-        #event-slide-content { width: 100%; height: 100%; }
+        /* Content Wrappers */
+        #slide-wrapper iframe { width: 100%; height: 100%; border: 0; }
         
-        iframe { width: 100%; height: 100%; border: 0; }
-        
-        #ticker-wrap {
-            position: fixed; bottom: 20px;
-            left: 0; width: 100%;
-            height: 60px; 
-            background-color: rgba(0, 0, 0, 0.7);
-            overflow: hidden; z-index: 99; box-sizing: border-box;
-        }
-        #ticker-content {
-            display: block; position: absolute; height: 100%;
-            line-height: 60px; font-size: 30px; color: #fff;
-            white-space: nowrap; will-change: transform;
-            animation-name: ticker-scroll;
-            animation-duration: 10s;
-            animation-timing-function: linear;
-            animation-iteration-count: infinite;
-        }
-        @keyframes ticker-scroll {
-            0% { transform: translateX(100vw); }
-            100% { transform: translateX(-100%); }
-        }
-        
+        /* NOTE: The .flip-180 CSS is removed entirely. */
     </style>
 </head>
 <body>
 
-    <div id="header-bar">
-        
-        <div id="weather-container">
-            <a class="weatherwidget-io" href="https://forecast7.com/en/59d6116d54/vasteras/" data-label_1="VÄSTERÅS" data-label_2="WEATHER" data-theme="dark" >VÄSTERÅS WEATHER</a>
-            <script>
-            !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
-            </script>
-        </div>
-
-        <div id="clock-container">
-            <div id="clock-time"></div>
-            <div id="clock-date"></div>
-        </div>
+    <!-- --- HTML PLACEHOLDERS --- -->
+    <div id="slide-wrapper" class="content-container"></div>
+    <div id="text-wrapper" class="content-container">
+        <h1 id="text-headline"></h1>
+        <p id="text-body"></p>
     </div>
-    
-    <div id="default-view" class="view-container">
-        <iframe id="default-iframe" frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
-    </div>
-    <div id="event-view" class="view-container">
-        <div id="event-title"></div>
-        <div id="event-time"></div>
-        <div id="event-slide-content"></div>
-    </div>
-    
-    <div id="ticker-wrap">
-        <div id="ticker-content"></div>
+    <div id="error-wrapper" class="content-container">
+        <h1 id="error-headline">Error</h1>
+        <p id="error-body"></p>
     </div>
 
-
-    <script type."text/javascript">
-        'use strict'; 
-
-        // ---------------------------------
-        // --- SECTION 1: CONFIGURATION ---
-        // ---------------------------------
-
-        const API_KEY = 'AIzaSyBC6IsECB620ykggdNvRJzD7BivHEmvToA'; // ❗ PASTE YOUR API KEY HERE
-        const REFRESH_INTERVAL = 60000; 
-        const TICKER_REFRESH_INTERVAL = REFRESH_INTERVAL * 5; 
-
-        // --- ALL 'https://' LINKS ARE NOW FIXED ---
-        const SIGNAGE_CONFIGS = {
-            'junior': {
-                calendarId: 'c_f95b4feddefb64d35df9e2b89f1cd628b54f6de1d7af9fa05245cde28cdb390d@group.calendar.google.com',
-                presentationId: '1Hm9DlVNLmN0tKTD7tR9b0vdu3AMTPNkLdLUdotyKlhM',
-                tickerFile: 'ticker-junior.txt',
-                defaultRotation: [
-                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior1', duration: 15000 }
-                ]
-            },
-            'senior': {
-                calendarId: 'c_2792c6b8f08afd427f56b3f49c841518ca3a9e9b881ac545f5fc8b2516488e00@group.calendar.google.com',
-                presentationId: '1GzzhdbgCjSM4_p6cvkY_ne34I87Z7eb4ITwxiGameb8', // This is for 'show=slide'
-                tickerFile: 'ticker-senior.txt',
-                defaultRotation: [
-                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior2', duration: 15000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior1', duration: 15000 },
-                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 } // <-- I fixed the 'httpsa://' typo here too
-                ]
-            }
-        };
-
-
-        // ---------------------------------
-        // --- SECTION 2: GLOBAL STATE & DOM ---
-        // ---------------------------------
-
-        const app = {
-            state: {
-                currentSettings: null,
-                rotationTimer: null,
-                rotationIndex: 0
-            },
-            dom: {
-                clockTime: null,
-                clockDate: null,
-                defaultView: null,
-                eventView: null,
-                eventTitle: null,
-                eventTime: null,
-                eventSlideContent: null,
-                defaultIframe: null,
-                tickerContent: null
-            }
-        };
-
-        // ---------------------------------
-        // --- SECTION 3: INITIALIZATION ---
-        // ---------------------------------
-
-        function start() {
-            console.log("Signage app starting...");
-
-            // 1. Find and store all our HTML elements
-            app.dom.clockTime = document.getElementById('clock-time');
-            app.dom.clockDate = document.getElementById('clock-date');
-            app.dom.defaultView = document.getElementById('default-view');
-            app.dom.eventView = document.getElementById('event-view');
-            app.dom.eventTitle = document.getElementById('event-title');
-            app.dom.eventTime = document.getElementById('event-time');
-            app.dom.eventSlideContent = document.getElementById('event-slide-content');
-            app.dom.defaultIframe = document.getElementById('default-iframe');
-            app.dom.tickerContent = document.getElementById('ticker-content');
-
-            // 2. Start the clock
-            updateClock();
-            setInterval(updateClock, 1000);
-
-            // 3. Start the Wake Lock "jiggle"
-            initWakeLock();
-
-            // 4. Get sign configuration from URL (?sign=...)
-            const urlParams = new URLSearchParams(window.location.search);
-            const signId = urlParams.get('sign');
-
-            if (signId && SIGNAGE_CONFIGS[signId]) {
-                app.state.currentSettings = SIGNAGE_CONFIGS[signId];
-                console.log(`Loading configuration for: ${signId}`);
-
-                // 5. Load initial data
-                loadTickerFile();
-                setInterval(loadTickerFile, TICKER_REFRESH_INTERVAL);
-
-                // 6. Initialize Google API client
-                gapi.load('client', initClient);
-            } else {
-                // If no valid ?sign=... is found, show a fatal error
-                showFatalError(
-                    'Configuration Error: Invalid or missing sign ID in URL.',
-                    'Please add <strong>?sign=junior</strong> or <strong>?sign=senior</strong> to the end of the URL.'
-                );
-            }
-        }
-
-        function initClient() {
-            gapi.client.init({
-                'apiKey': API_KEY,
-                'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'], // <-- LINK FIXED
-            }).then(() => {
-                console.log('Google API client initialized.');
-                
-                // 7. Start the main calendar check loop
-                checkCalendar();
-                setInterval(checkCalendar, REFRESH_INTERVAL);
-            }, (error) => {
-                console.error('Error initializing Google client:', error);
-                showDefaultView();
-            });
-        }
-        
-        function initWakeLock() {
-            let wakeLock = null;
-
-            const requestLock = async () => {
-                if ('wakeLock' in navigator) {
-                    try {
-                        wakeLock = await navigator.wakeLock.request('screen');
-                        console.log('Screen Wake Lock is active!');
-                        
-                        wakeLock.addEventListener('release', () => {
-                            console.log('Screen Wake Lock was released.');
-                            wakeLock = null;
-                        });
-
-                    } catch (err) {
-                        console.error('Wake Lock request failed:', err.message);
-                    }
-                } else {
-                    console.warn('Wake Lock API is not supported.');
+    <!-- --- JAVASCRIPT LOGIC (Hardcoded) --- -->
+    <script>
+        // *** CONFIGURATION AREA (HARDCODED) ***
+        const CONFIG = {
+            "mode": "individual", 
+            
+            "individual_content": {
+                "device-1": { 
+                    "type": "google_slide", 
+                    "url": "https://docs.google.com/presentation/d/e/1DyY4bD7MmKKQI8FE-Nc3RiuyiLcfNCyoW3FUTPAF1_s/embed?start=true&loop=true&delayms=5000&rm=minimal" 
+                },
+                "device-2": { 
+                    "type": "google_slide", 
+                    "url": "https://docs.google.com/presentation/d/e/1VpDueXN_OsqEwVEAz2HYucnNUs1W9M4WcR5xHuQTDQQ/embed?start=true&loop=true&delayms=5000&rm=minimal" 
+                },
+                "device-3": { 
+                    "type": "google_slide", 
+                    "url": "https://docs.google.com/presentation/d/e/1NmctG-tMBiJZIqzzTygLbOgx1XxK-4VOto03sNqrt6g/embed?start=true&loop=true&delayms=5000&rm=minimal" 
+                },
+                "device-4": { 
+                    "type": "google_slide", 
+                    "url": "https://docs.google.com/presentation/d/e/1VDRK_nib2V4adtqoM83uPGOksZl1yCHXrzMjceMaDuA/embed?start=true&loop=true&delayms=5000&rm=minimal" 
                 }
+            }
+        };
+
+        window.onload = function() {
+            const allWrappers = {
+                slide: document.getElementById('slide-wrapper'),
+                text: document.getElementById('text-wrapper'), 
+                error: document.getElementById('error-wrapper'), 
             };
 
-            // 1. Request the lock immediately
-            requestLock();
-            
-            // 2. Then, re-request it every 4 minutes
-            setInterval(requestLock, 240000);
-        }
+            const params = new URLSearchParams(window.location.search);
+            const deviceId = params.get('device');
 
-        // ---------------------------------
-        // --- SECTION 4: DATA FETCHING ---
-        // ---------------------------------
+            // --- NOTE: Rotation code removed here ---
 
-        function loadTickerFile() {
-            const tickerFile = app.state.currentSettings.tickerFile;
-            if (!tickerFile) {
-                console.warn('No ticker file specified.');
-                app.dom.tickerContent.innerText = '';
-                return;
-            }
-
-            const url = `${tickerFile}?t=${new Date().getTime()}`; 
-            console.log(`Fetching ticker file: ${tickerFile}`);
-
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.text();
-                })
-                .then(text => {
-                    const trimmedText = text.trim();
-                    app.dom.tickerContent.innerText = trimmedText;
-                    if (trimmedText) {
-                        const duration = trimmedText.length * 0.15;
-                        const animationDuration = Math.max(10, duration) + 's';
-                        app.dom.tickerContent.style.animationDuration = animationDuration;
-                    }
-                })
-                .catch(error => {
-                    console.error(`Error fetching ${tickerFile}:`, error);
-                    app.dom.tickerContent.innerText = '';
-                });
-        }
-
-        function checkCalendar() {
-            if (!app.state.currentSettings) return;
-            
-            const now = new Date();
-            console.log(`Checking calendar at ${now.toLocaleTimeString()}`);
-            
-            gapi.client.calendar.events.list({
-                'calendarId': app.state.currentSettings.calendarId,
-                'timeMin': now.toISOString(),
-                'maxResults': 1,
-                'singleEvents': true,
-                'orderBy': 'startTime'
-            }).then((response) => {
-                const event = response.result.items[0];
-                if (!event) {
-                    showDefaultView(); // No events found
-                    return;
-                }
-
-                const eventStart = new Date(event.start.dateTime || event.start.date);
-                const eventEnd = new Date(event.end.dateTime || event.end.date);
-
-                if (now >= eventStart && now < eventEnd) {
-                    console.log('Active event found:', event.summary);
-                    parseEvent(event); // Show the event
+            try {
+                const content = CONFIG.individual_content['device-' + deviceId];
+                if (content) {
+                    showIndividualContent(content);
                 } else {
-                    showDefaultView(); // No *active* event
+                    showError("Setup Error", "Device ID is missing or not configured in the code.");
                 }
-            }).catch((error) => {
-                console.error('Error fetching calendar:', error);
-                showDefaultView(); // Show default on error
-            });
-        }
-
-        // ---------------------------------
-        // --- SECTION 5: VIEW MANAGEMENT ---
-        // ---------------------------------
-
-        function parseEvent(event) {
-            const description = event.description || '';
-
-            if (description.includes('show=externalSlide&presId=')) {
-                try {
-                    const presId = description.split('presId=')[1].split('&')[0];
-                    const slideId = description.split('slideId=')[1].split(' ')[0];
-                    showSpecificSlide(slideId, presId);
-                } catch (e) {
-                    console.error('Could not parse external slide command.', e);
-                    showDefaultView();
-                }
-            } else if (description.includes('show=slide&id=')) {
-                try {
-                    const slideNumber = description.split('id=')[1].split(' ')[0];
-                    showSpecificSlide(slideNumber, app.state.currentSettings.presentationId);
-                } catch (e) {
-                    console.error('Could not parse slide ID.', e);
-                    showDefaultView();
-                }
-            } else if (description.includes('show=event')) {
-                showEventText(event);
-            } else {
-                showDefaultView();
+            } catch (e) {
+                showError("Configuration Error", e.message);
             }
-        }
 
-        function showDefaultView() {
-            if (app.dom.defaultView.style.display === 'block') return;
 
-            console.log('Showing default view and starting rotation.');
-            app.dom.eventView.style.display = 'none';
-            app.dom.defaultView.style.display = 'block';
-
-            if (app.state.rotationTimer) clearTimeout(app.state.rotationTimer);
-            
-            app.state.rotationIndex = 0; // Start rotation from the first page
-            rotateDefaultView();
-        }
-
-        function rotateDefaultView() {
-            const pages = app.state.currentSettings.defaultRotation;
-            if (!pages || pages.length === 0) return; 
-
-            // --- THIS IS THE JAVASCRIPT TYPO I FIXED ---
-            // It's now app.state.rotationIndex (not .rotation.index)
-            const currentPage = pages[app.state.rotationIndex];
-            app.dom.defaultIframe.src = currentPage.url;
-            console.log(`Rotating to: ${currentPage.url} for ${currentPage.duration}ms`);
-
-            app.state.rotationIndex = (app.state.rotationIndex + 1) % pages.length;
-
-            app.state.rotationTimer = setTimeout(rotateDefaultView, currentPage.duration);
-        }
-
-        function showSpecificSlide(slideNumber, presentationId) {
-            if (app.state.rotationTimer) clearTimeout(app.state.rotationTimer);
-            
-            console.log(`Showing specific slide: ${slideNumber} from presentation: ${presentationId}`);
-            const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000&slide=id.p${slideNumber}&rm=minimal`; // <-- LINK FIXED
-            
-            app.dom.eventTitle.innerText = '';
-            app.dom.eventTime.innerText = '';
-            app.dom.eventSlideContent.innerHTML = `<iframe src="${slideUrl}" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>`;
-            
-            app.dom.defaultView.style.display = 'none';
-            app.dom.eventView.style.display = 'block';
-        }
-
-        function showEventText(event) {
-            if (app.state.rotationTimer) clearTimeout(app.state.rotationTimer);
-            
-            console.log(`Showing event text: ${event.summary}`);
-            app.dom.eventSlideContent.innerHTML = '';
-            app.dom.eventTitle.innerText = event.summary;
-            app.dom.eventTime.innerText = formatEventTime(event.start, event.end);
-            
-            app.dom.defaultView.style.display = 'none';
-            app.dom.eventView.style.display = 'block';
-        }
-
-        function showFatalError(title, message) {
-            document.body.innerHTML = `<h1 style="color:red; padding: 50px;">${title}</h1>
-                                        <p style="color:white; padding: 0 50px;">${message}</p>`;
-        }
-
-        // ---------------------------------
-        // --- SECTION 6: UTILITIES ---
-        // ---------------------------------
-
-        function formatEventTime(start, end) {
-            const svOptions = { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Stockholm' };
-            const startTime = new Date(start.dateTime || start.date).toLocaleTimeString('sv-SE', svOptions);
-            const endTime = new Date(end.dateTime || end.date).toLocaleTimeString('sv-SE', svOptions);
-            return `${startTime} - ${endTime}`;
-        }
-        
-        function updateClock() {
-            const now = new Date();
-            // Using Europe/Stockholm to ensure time is correct regardless of server
-            const timeOptions = { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Stockholm' };
-            const timeString = now.toLocaleTimeString('sv-SE', timeOptions);
-            
-            const weekdayOptions = { weekday: 'long', timeZone: 'Europe/Stockholm' };
-            let weekdayString = now.toLocaleDateString('sv-SE', weekdayOptions);
-            weekdayString = weekdayString.charAt(0).toUpperCase() + weekdayString.slice(1);
-            
-            const dayMonthOptions = { day: 'numeric', month: 'long', timeZone: 'Europe/Stockholm' };
-            const dayMonthString = now.toLocaleDateString('sv-SE', dayMonthOptions);
-
-            const formattedDate = `${weekdayString}<br><span class="clock-day-month">${dayMonthString}</span>`;
-
-            if (app.dom.clockTime) {
-                app.dom.clockTime.innerText = timeString;
-                app.dom.clockDate.innerHTML = formattedDate; 
+            function showIndividualContent(content) {
+                if (content.type === 'google_slide') {
+                    const iframe = document.createElement('iframe'); 
+                    iframe.src = content.url;
+                    allWrappers.slide.innerHTML = ''; 
+                    allWrappers.slide.appendChild(iframe); 
+                    showWrapper('slide');
+                } else if (content.type === 'text') {
+                    document.getElementById('text-headline').textContent = content.headline;
+                    document.getElementById('text-body').textContent = content.body;
+                    showWrapper('text');
+                } else {
+                    showError("Config Error", `Unknown content type: ${content.type}`);
+                }
             }
-        }
 
+            function showError(head, body) {
+                document.getElementById('error-headline').textContent = head;
+                document.getElementById('error-body').textContent = body;
+                showWrapper('error');
+            }
+
+            function showWrapper(activeKey) {
+                for (let key in allWrappers) {
+                    if(allWrappers[key]) {
+                        const displayType = (key === 'text' || key === 'error') ? 'flex' : 'block';
+                        allWrappers[key].style.display = (key === activeKey) ? displayType : 'none';
+                    }
+                }
+            }
+        };
     </script>
-    
-    <script async defer src="https://apis.google.com/js/api.js" onload="start()"></script>
 </body>
 </html>
