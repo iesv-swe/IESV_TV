@@ -1,120 +1,174 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>School Video Wall - Individual Screens</title>
-    <!-- CSS STYLES ARE EMBEDDED HERE -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IESV Digital Signage</title>
     <style>
-        /* Global Styles: Ensures full screen, black background, and no scrolling */
-        body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: black; }
-        .content-container { display: none; width: 100%; height: 100%; box-sizing: border-box; }
+        /* --- STYLES --- */
+        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: Arial, Helvetica, sans-serif; background-color: #000; color: #fff; }
         
-        /* Centering for Text/Error */
-        #text-wrapper, #error-wrapper {
-            color: white; font-family: sans-serif; padding: 40px; display: flex; 
-            flex-direction: column; justify-content: center; align-items: center; text-align: center;
-        }
-        #error-wrapper { color: #ff6b6b; }
+        /* Header & Layout */
+        #header-bar { position: fixed; top: 0; left: 0; width: 100%; height: 110px; background-color: #000; z-index: 100; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; padding: 0 20px; }
         
-        /* Content Wrappers */
-        #slide-wrapper iframe { width: 100%; height: 100%; border: 0; }
+        /* Weather (Flexible Width) */
+        #weather-container { flex: 1; min-width: 0; padding-right: 20px; }
+        #weather-container .weatherwidget-io { display: block !important; width: 100% !important; }
         
-        /* NOTE: The .flip-180 CSS is removed entirely. */
+        /* Clock (Fixed Width) */
+        #clock-container { position: relative; flex-shrink: 0; text-align: right; text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8); z-index: 101; }
+        #clock-time { font-size: 2.5vw; font-weight: bold; }
+        #clock-date { font-size: 1vw; }
+        .clock-day-month { font-size: 0.8vw; color: #ccc; }
+
+        /* Main Content */
+        .view-container { position: fixed; top: 110px; bottom: 80px; left: 0; width: 100%; display: none; }
+        #default-view { display: block; }
+        iframe { width: 100%; height: 100%; border: 0; }
+        
+        /* Ticker */
+        #ticker-wrap { position: fixed; bottom: 20px; left: 0; width: 100%; height: 60px; background-color: rgba(0, 0, 0, 0.7); overflow: hidden; z-index: 99; box-sizing: border-box; }
+        #ticker-content { display: block; position: absolute; height: 100%; line-height: 60px; font-size: 30px; color: #fff; white-space: nowrap; will-change: transform; animation-name: ticker-scroll; animation-duration: 10s; animation-timing-function: linear; animation-iteration-count: infinite; }
+        @keyframes ticker-scroll { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
     </style>
 </head>
 <body>
 
-    <!-- --- HTML PLACEHOLDERS --- -->
-    <div id="slide-wrapper" class="content-container"></div>
-    <div id="text-wrapper" class="content-container">
-        <h1 id="text-headline"></h1>
-        <p id="text-body"></p>
+    <div id="header-bar">
+        <div id="weather-container">
+            <a class="weatherwidget-io" href="https://forecast7.com/en/59d6116d54/vasteras/" data-label_1="VÄSTERÅS" data-label_2="WEATHER" data-theme="dark" >VÄSTERÅS WEATHER</a>
+            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');</script>
+        </div>
+        <div id="clock-container">
+            <div id="clock-time"></div>
+            <div id="clock-date"></div>
+        </div>
     </div>
-    <div id="error-wrapper" class="content-container">
-        <h1 id="error-headline">Error</h1>
-        <p id="error-body"></p>
+    
+    <div id="default-view" class="view-container">
+        <iframe id="default-iframe" frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    </div>
+    
+    <div id="ticker-wrap">
+        <div id="ticker-content"></div>
     </div>
 
-    <!-- --- JAVASCRIPT LOGIC (Hardcoded) --- -->
-    <script>
-        // *** CONFIGURATION AREA (HARDCODED) ***
-        const CONFIG = {
-            "mode": "individual", 
+    <script type="text/javascript">
+        'use strict'; 
+
+        // --- CONFIGURATION (No API Key Needed) ---
+        const TICKER_REFRESH_INTERVAL = 300000; // 5 minutes
+
+        const SIGNAGE_CONFIGS = {
+            'junior': {
+                tickerFile: 'ticker-junior.txt',
+                defaultRotation: [
+                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior1', duration: 15000 }
+                ]
+            },
+            'senior': {
+                tickerFile: 'ticker-senior.txt',
+                defaultRotation: [
+                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=true&delayms=10000&rm=minimal', duration: 45000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior2', duration: 15000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior1', duration: 15000 },
+                    { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 }
+                ]
+            }
+        };
+
+        const app = {
+            state: { currentSettings: null, rotationTimer: null, rotationIndex: 0 },
+            dom: {
+                clockTime: null, clockDate: null, defaultView: null, 
+                defaultIframe: null, tickerContent: null
+            }
+        };
+
+        function start() {
+            console.log("Signage app starting (No API Mode)...");
+            app.dom.clockTime = document.getElementById('clock-time');
+            app.dom.clockDate = document.getElementById('clock-date');
+            app.dom.defaultView = document.getElementById('default-view');
+            app.dom.defaultIframe = document.getElementById('default-iframe');
+            app.dom.tickerContent = document.getElementById('ticker-content');
+
+            updateClock();
+            setInterval(updateClock, 1000);
             
-            "individual_content": {
-                "device-1": { 
-                    "type": "google_slide", 
-                    "url": "https://docs.google.com/presentation/d/e/1DyY4bD7MmKKQI8FE-Nc3RiuyiLcfNCyoW3FUTPAF1_s/preview?start=true&loop=true&delayms=5000&rm=minimal" 
-                },
-                "device-2": { 
-                    "type": "google_slide", 
-                    "url": "https://docs.google.com/presentation/d/e/1VpDueXN_OsqEwVEAz2HYucnNUs1W9M4WcR5xHuQTDQQ/embed?start=true&loop=true&delayms=5000&rm=minimal" 
-                },
-                "device-3": { 
-                    "type": "google_slide", 
-                    "url": "https://docs.google.com/presentation/d/e/1NmctG-tMBiJZIqzzTygLbOgx1XxK-4VOto03sNqrt6g/embed?start=true&loop=true&delayms=5000&rm=minimal" 
-                },
-                "device-4": { 
-                    "type": "google_slide", 
-                    "url": "https://docs.google.com/presentation/d/e/1VDRK_nib2V4adtqoM83uPGOksZl1yCHXrzMjceMaDuA/embed?start=true&loop=true&delayms=5000&rm=minimal" 
-                }
-            }
-        };
+            // Anti-Sleep "Jiggle" (Every 4 mins)
+            initWakeLock();
 
-        window.onload = function() {
-            const allWrappers = {
-                slide: document.getElementById('slide-wrapper'),
-                text: document.getElementById('text-wrapper'), 
-                error: document.getElementById('error-wrapper'), 
+            // Read ?sign=junior or ?sign=senior
+            const urlParams = new URLSearchParams(window.location.search);
+            const signId = urlParams.get('sign');
+
+            if (signId && SIGNAGE_CONFIGS[signId]) {
+                app.state.currentSettings = SIGNAGE_CONFIGS[signId];
+                loadTickerFile();
+                setInterval(loadTickerFile, TICKER_REFRESH_INTERVAL);
+                showDefaultView(); // Start the show!
+            } else {
+                document.body.innerHTML = `<h1 style="color:red; padding: 50px;">Configuration Error: Invalid or missing sign ID in URL.<br>Please check Kiosk Settings.</h1>`;
+            }
+        }
+
+        function initWakeLock() {
+            let wakeLock = null;
+            const requestLock = async () => {
+                if ('wakeLock' in navigator) {
+                    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) { console.error(err); }
+                }
             };
+            requestLock();
+            setInterval(requestLock, 240000); // 4 minutes
+        }
 
-            const params = new URLSearchParams(window.location.search);
-            const deviceId = params.get('device');
+        function loadTickerFile() {
+            const tickerFile = app.state.currentSettings.tickerFile;
+            if (!tickerFile) return;
+            fetch(`${tickerFile}?t=${new Date().getTime()}`)
+                .then(r => r.text())
+                .then(text => {
+                    const trimmed = text.trim();
+                    app.dom.tickerContent.innerText = trimmed;
+                    if(trimmed) app.dom.tickerContent.style.animationDuration = Math.max(10, trimmed.length * 0.15) + 's';
+                })
+                .catch(e => console.error(e));
+        }
 
-            // --- NOTE: Rotation code removed here ---
+        function showDefaultView() {
+            if (app.state.rotationTimer) clearTimeout(app.state.rotationTimer);
+            app.state.rotationIndex = 0;
+            rotateDefaultView();
+        }
 
-            try {
-                const content = CONFIG.individual_content['device-' + deviceId];
-                if (content) {
-                    showIndividualContent(content);
-                } else {
-                    showError("Setup Error", "Device ID is missing or not configured in the code.");
-                }
-            } catch (e) {
-                showError("Configuration Error", e.message);
+        function rotateDefaultView() {
+            const pages = app.state.currentSettings.defaultRotation;
+            if (!pages || pages.length === 0) return;
+            const currentPage = pages[app.state.rotationIndex];
+            app.dom.defaultIframe.src = currentPage.url;
+            app.state.rotationIndex = (app.state.rotationIndex + 1) % pages.length;
+            app.state.rotationTimer = setTimeout(rotateDefaultView, currentPage.duration);
+        }
+        
+        function updateClock() {
+            const now = new Date();
+            const timeOptions = { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Stockholm' };
+            const dayOptions = { weekday: 'long', timeZone: 'Europe/Stockholm' };
+            const dateOptions = { day: 'numeric', month: 'long', timeZone: 'Europe/Stockholm' };
+            
+            if (app.dom.clockTime) {
+                app.dom.clockTime.innerText = now.toLocaleTimeString('sv-SE', timeOptions);
+                let weekday = now.toLocaleDateString('sv-SE', dayOptions);
+                weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+                app.dom.clockDate.innerHTML = `${weekday}<br><span class="clock-day-month">${now.toLocaleDateString('sv-SE', dateOptions)}</span>`; 
             }
-
-
-            function showIndividualContent(content) {
-                if (content.type === 'google_slide') {
-                    const iframe = document.createElement('iframe'); 
-                    iframe.src = content.url;
-                    allWrappers.slide.innerHTML = ''; 
-                    allWrappers.slide.appendChild(iframe); 
-                    showWrapper('slide');
-                } else if (content.type === 'text') {
-                    document.getElementById('text-headline').textContent = content.headline;
-                    document.getElementById('text-body').textContent = content.body;
-                    showWrapper('text');
-                } else {
-                    showError("Config Error", `Unknown content type: ${content.type}`);
-                }
-            }
-
-            function showError(head, body) {
-                document.getElementById('error-headline').textContent = head;
-                document.getElementById('error-body').textContent = body;
-                showWrapper('error');
-            }
-
-            function showWrapper(activeKey) {
-                for (let key in allWrappers) {
-                    if(allWrappers[key]) {
-                        const displayType = (key === 'text' || key === 'error') ? 'flex' : 'block';
-                        allWrappers[key].style.display = (key === activeKey) ? displayType : 'none';
-                    }
-                }
-            }
-        };
+        }
+        
+        // Start the app immediately
+        start();
     </script>
 </body>
 </html>
