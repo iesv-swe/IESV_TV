@@ -63,14 +63,14 @@
             'junior': {
                 tickerFile: 'ticker-junior.txt',
                 defaultRotation: [
-                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pub?start=true&loop=false&delayms=5000&rm=minimal', duration: 80000 },
+                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vTYWiGFjHWeacQIT0db_CjXqzy0FvSxVsulVHsBsKSGU0v7HLD2tmvgaEntgzYbCQgvlyWVvyMMupmx/pubembed?start=true&loop=false&delayms=5000&rm=minimal', duration: 80000 },
                     { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior1', duration: 15000 }
                 ]
             },
             'senior': {
                 tickerFile: 'ticker-senior.txt',
                 defaultRotation: [
-                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pub?start=true&loop=false&delayms=5000&rm=minimal', duration: 80000 },
+                    { url: 'https://docs.google.com/presentation/d/e/2PACX-1vQa7OW-5fkXiK7DHhMxqerBxy6Is8HIn4ct9tZiTNNRpQ2COYB7yYNl3fx6DiJEz7J5jtB0cFsXwt0u/pubembed?start=true&loop=false&delayms=5000&rm=minimal', duration: 80000 },
                     { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=junior2', duration: 15000 },
                     { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior1', duration: 15000 },
                     { url: 'https://iesv-swe.github.io/IESV-Now-and-Next/?view=senior2', duration: 15000 }
@@ -108,7 +108,7 @@
                 app.state.currentSettings = SIGNAGE_CONFIGS[signId];
                 loadTickerFile();
                 setInterval(loadTickerFile, TICKER_REFRESH_INTERVAL);
-                showDefaultView(); // Start the show!
+                showDefaultView();
             } else {
                 document.body.innerHTML = `<h1 style="color:red; padding: 50px;">Configuration Error: Invalid or missing sign ID in URL.<br>Please check Kiosk Settings.</h1>`;
             }
